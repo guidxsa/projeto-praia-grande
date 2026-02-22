@@ -9,7 +9,7 @@ Foi proposto um projeto de criação de um site público informativo gerenciado 
 
 O sistema consiste em ser um elo entre as autoridades da escola e os alunos/responsáveis, facilitando a comunicação e a tornando mais eficiente.
 
-## Cronograma
+## Cronograma Inicial
 
 ### Semana 0:
 - Apresentacao inicial do projeto
@@ -21,16 +21,16 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 ### Sprint 1:
 - Criação do Protótipo no Figma
 - Termo de intenção
-- Escolha da tecnologia
+- Escolha das tecnologias
   
 ### Sprint 2:
 - Definição do modelo de dados
-- Configurar a hospedagem gratuita
+- Configurar a hospedagem
 - Desenvolver a página principal
 
 ### Sprint 3:
 - Configurar o Banco de Dados
-- Implementar o Sistema de Autenticação
+- Implementar o Sistema de Login
 - Desenvolver o formulário administrativo para criar avisos
 
 ### Sprint 4:
@@ -43,3 +43,10 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 
 ### Sprint 6:
 - Testes de usabilidade
+
+### Sprint 7:
+-  Melhorar o design (UI) com feedbacks visuais.
+-  Criar um Manual de Uso em PDF simples para a secretaria da escola.
+
+### Sprint 8
+-  Assegurar a segurança do site
