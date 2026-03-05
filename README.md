@@ -10,43 +10,47 @@ Foi proposto um projeto de criação de um site público informativo gerenciado 
 O sistema consiste em ser um elo entre as autoridades da escola e os alunos/responsáveis, facilitando a comunicação e a tornando mais eficiente.
 
 ## Cronograma Inicial
-
 ### Semana 0:
-- Apresentacao inicial do projeto
-- Escolha da instituicao alvo
-- Entendimento da necessidade da escola
-- Coleta de requisitos
-- Configuração do Repositório no GitHub e convite para o grupo
+- [x] Apresentacao inicial do projeto 
+- [x] Escolha da instituicao alvo
+- [x] Entendimento da necessidade da escola
+- [x] Coleta de requisitos
+- [x] Configuração do Repositório no GitHub e convite para o grupo
   
 ### Sprint 1:
-- Criação do Protótipo no Figma
-- Termo de intenção
-- Escolha das tecnologias
+- [x] Criação do Protótipo no Figma
+- [x] Termo de intenção
+- [x] Escolha das tecnologias
   
 ### Sprint 2:
-- Definição do modelo de dados
-- Configurar a hospedagem
-- Desenvolver a página principal
+- [ ] Definição do modelo de dados
+- [ ] Configurar a hospedagem
+- [ ] Desenvolver a página principal
 
 ### Sprint 3:
-- Configurar o Banco de Dados
-- Implementar o Sistema de Login
-- Desenvolver o formulário administrativo para criar avisos
+- [ ] Implementar o Sistema de Login
+- [ ] Desenvolver o formulário administrativo para criar avisos
 
 ### Sprint 4:
-- Implementar o upload de dados
-- Implementar abas de diferentes informes
+- [ ] Infraestrutura de Dados
 
 ### Sprint 5:
-- Implementar filtros por data e por tipo de aviso
-- Implementar exclusão e edição de avisos
+- [ ] Refinamento e Homologação do Banco
 
 ### Sprint 6:
-- Testes de usabilidade
+- [ ] Implementar o upload de dados
+- [ ] Implementar abas de diferentes informes
 
 ### Sprint 7:
--  Melhorar o design (UI) com feedbacks visuais.
--  Criar um Manual de Uso em PDF simples para a secretaria da escola.
+- [ ] Implementar filtros por data e por tipo de aviso
+- [ ] Implementar exclusão e edição de avisos
 
-### Sprint 8
--  Assegurar a segurança do site
+### Sprint 8:
+- [ ] Testes de usabilidade
+
+### Sprint 9:
+- [ ] Melhorar o design (UI) com feedbacks visuais.
+- [ ] Criar um Manual de Uso em PDF simples para a secretaria da escola.
+
+### Sprint 10:
+- [ ] Assegurar a segurança do site
