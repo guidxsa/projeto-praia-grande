@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Acesso Funcionários</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body class="body-login">
+    <div class="login-container">
+      <div class="logo-icon">🏫</div>
+      <h2>Acesso Funcionários</h2>
+      <p>Entre para gerenciar o portal</p>
+      <input type="email" id="email" placeholder="admin@escola.com" />
+      <input type="password" id="senha" placeholder="Sua senha" />
+      <button onclick="fazerLogin()">Entrar</button>
+      <p id="msg-login"></p>
+      <a href="index.html" class="voltar-link">← Voltar ao portal</a>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

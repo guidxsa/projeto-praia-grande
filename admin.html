@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel Administrativo</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="main-header">
+      <h1>Painel Administrativo</h1>
+      <div class="user-info">
+        <span id="nome-usuario-header">Olá, Ricardo Oliveira</span>
+        <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+      </div>
+    </header>
+
+    <main class="container admin-layout">
+      <aside class="stats-sidebar">
+        <h3>Estatísticas</h3>
+        <ul>
+          <li>Total: <strong id="total-notif">0</strong></li>
+          <li>
+            Ativas: <strong id="ativas-notif" class="text-green">0</strong>
+          </li>
+          <li>
+            Expiradas: <strong id="expiradas-notif" class="text-red">0</strong>
+          </li>
+        </ul>
+        <hr />
+        <button
+          class="btn-nova"
+          onclick="document.getElementById('modal').style.display = 'flex'"
+        >
+          + Nova Notificação
+        </button>
+      </aside>
+
+      <section class="table-container">
+        <h3>Notificações Ativas</h3>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Categoria</th>
+              <th>Data</th>
+              <th>Expira em</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-corpo"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <div id="modal" class="modal-overlay" style="display: none">
+      <div class="modal-form">
+        <div class="modal-header">
+          <h2>Nova Notificação</h2>
+          <button
+            class="close"
+            onclick="document.getElementById('modal').style.display = 'none'"
+          >
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <label>Título da notícia</label>
+          <input
+            type="text"
+            id="titulo"
+            placeholder="Digite o título principal"
+          />
+
+          <div class="row">
+            <div class="col">
+              <label>Categoria</label>
+              <select id="categoria">
+                <option value="Notícia">Notícia</option>
+                <option value="Reunião">Reunião</option>
+                <option value="Evento">Evento</option>
+                <option value="Aviso">Aviso</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>Expiração</label>
+              <input type="date" id="data-expiracao" />
+            </div>
+          </div>
+
+          <label>URL da Imagem (opcional)</label>
+          <input
+            type="text"
+            id="imagem-url"
+            placeholder="https://exemplo.com/foto.jpg"
+          />
+
+          <label>Descrição Curta (para o card)</label>
+          <textarea id="descricao" placeholder="Resumo rápido..."></textarea>
+
+          <label>Conteúdo Completo</label>
+          <textarea
+            id="conteudo-completo"
+            style="height: 150px"
+            placeholder="Escreva o texto completo da notícia aqui..."
+          ></textarea>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-cancelar"
+            onclick="document.getElementById('modal').style.display = 'none'"
+          >
+            Cancelar
+          </button>
+          <button class="btn-postar" onclick="publicar()">
+            Publicar Notificação
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
