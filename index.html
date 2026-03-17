@@ -1,48 +1,51 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Escola Conectada</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  </head>
-  <body>
+</head>
+<body>
     <header class="main-header">
-      <div class="logo-area">
-        <div class="logo-icon">🏫</div>
-        <div>
-          <h1>Portal Escola Conectada</h1>
-          <p>Notícias, eventos e comunicados importantes</p>
+        <div class="logo-area">
+            <div class="logo-icon">🏫</div>
+            <div>
+                <h1>Portal Escola Conectada</h1>
+                <p>Notícias, eventos e comunicados importantes</p>
+            </div>
         </div>
-      </div>
-      <a href="login.html" class="btn-acesso">➜ Acesso Funcionários</a>
+        <a href="login.html" class="btn-acesso">➜ Acesso Funcionários</a>
     </header>
 
     <main class="container">
-      <section class="filters-container">
-        <div class="category-tabs">
-          <button class="tab active" onclick="filtrar('Todas')">Todas</button>
-          <button class="tab" onclick="filtrar('Notícia')">Notícias</button>
-          <button class="tab" onclick="filtrar('Reunião')">Reuniões</button>
-          <button class="tab" onclick="filtrar('Evento')">Eventos</button>
-          <button class="tab" onclick="filtrar('Aviso')">Avisos</button>
-        </div>
-        <div class="search-bar">
-          <input
-            type="text"
-            id="input-busca"
-            placeholder="Digite para buscar..."
-            onkeyup="buscar()"
-          />
-        </div>
-      </section>
+        <section class="filters-container">
+            <div class="category-tabs">
+                <button class="tab active" onclick="filtrar('Todas')">Todas</button>
+                <button class="tab" onclick="filtrar('Notícia')">Notícias</button>
+                <button class="tab" onclick="filtrar('Reunião')">Reuniões</button>
+                <button class="tab" onclick="filtrar('Evento')">Eventos</button>
+                <button class="tab" onclick="filtrar('Aviso')">Avisos</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="input-busca" placeholder="Digite para buscar..." onkeyup="buscar()">
+            </div>
+        </section>
 
-      <section id="mural-noticias" class="news-grid">
-        <p class="loading-msg">Carregando notícias do mural...</p>
-      </section>
+        <section id="mural-noticias" class="news-grid">
+            <p class="loading-msg">Carregando notícias do mural...</p>
+        </section>
     </main>
+    
+    <div id="modal-leitura" class="modal-overlay" style="display:none;">
+        <div class="modal-content-full">
+            <button class="close-btn" onclick="fecharNoticia()">×</button>
+            <div id="conteudo-noticia-foco">
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
-  </body>
+</body>
 </html>
