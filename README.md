@@ -28,8 +28,8 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 - [x] Desenvolver a página principal
 
 ### Sprint 3 (11/03 - 17/03):
-- [ ] Implementar o Sistema de Login
-- [ ] Desenvolver o formulário administrativo para criar avisos
+- [x] Implementar o Sistema de Login
+- [x] Desenvolver o formulário administrativo para criar avisos
 
 ### Sprint 4 (18/03 - 24/03):
 - [ ] Infraestrutura de Dados
