@@ -32,25 +32,24 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 - [x] Desenvolver o formulário administrativo para criar avisos
 
 ### Sprint 4 (18/03 - 24/03):
-- [ ] Infraestrutura de Dados
+- [x] Infraestrutura de Dados
 
 ### Sprint 5 (25/03 - 31/04):
-- [ ] Refinamento e Homologação do Banco
-
-### Sprint 6 (01/05 - 07/05):
 - [ ] Implementar o upload de dados
 - [ ] Implementar abas de diferentes informes
 
-### Sprint 7 (08/05 - 14/05):
+### Sprint 6 (01/05 - 07/05):
 - [ ] Implementar filtros por data e por tipo de aviso
 - [ ] Implementar exclusão e edição de avisos
 
-### Sprint 8 (15/05 - 21/05):
+### Sprint 7 (08/05 - 14/05):
 - [ ] Testes de usabilidade
 
-### Sprint 9 (22/05 - 28/05):
+### Sprint 8 (15/05 - 21/05):
 - [ ] Melhorar o design (UI) com feedbacks visuais.
 - [ ] Criar um Manual de Uso em PDF simples para a secretaria da escola.
 
-### Sprint 10:
+### Sprint 9 (22/05 - 28/05):
 - [ ] Assegurar a segurança do site
+
+
