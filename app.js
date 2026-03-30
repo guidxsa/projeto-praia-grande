@@ -12,28 +12,25 @@ async function init() {
 
 let todasNoticias = []; // Variável global para o mural
 
-// 1. CARREGAR MURAL PÚBLICO (INDEX)
 async function carregarMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
-  const { data, error } = await _supabase
+  const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
-    .order("criado_em", { ascending: false }); // Usando a coluna correta
+    .order("criado_em", { ascending: false });
 
-  if (error) {
-    console.error("Erro ao carregar mural:", error.message);
-    mural.innerHTML = "<p>Erro ao carregar dados.</p>";
-    return;
+  if (noticias) {
+    todasNoticias = noticias; // SALVA NO ESTOQUE GLOBAL PARA A BUSCA FUNCIONAR
+    renderizarMural(noticias); // CHAMA A FUNÇÃO DE DESENHO
   }
-
-  todasNoticias = data; // Guarda no "estoque" para o filtro funcionar
-  renderizarMural(data);
 }
 
 function renderizarMural(lista) {
   const mural = document.getElementById("mural-noticias");
+  if (!mural) return;
+
   if (lista.length === 0) {
     mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
     return;
@@ -42,15 +39,14 @@ function renderizarMural(lista) {
   mural.innerHTML = lista
     .map(
       (n) => `
-        <article class="card" onclick="abrirNoticiaCompleta('${n.id}')">
+        <article class="card-noticia" onclick="abrirNoticiaCompleta('${n.id}')" style="cursor: pointer;">
             ${n.imagem_url ? `<img src="${n.imagem_url}" class="card-img" alt="Capa">` : ""}
-            <div class="card-body">
-                <span class="tag">${n.categoria}</span>
-                <h3>${n.titulo}</h3>
-                <p>${n.descricao_breve}</p> 
+            <div class="card-content">
+                <span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span>
+                <h3 class="card-title">${n.titulo}</h3>
+                <p class="card-summary">${n.descricao_breve || "Clique para ler mais..."}</p>
                 <div class="card-footer">
-                    <small>📅 ${new Date(n.criado_em).toLocaleDateString()}</small>
-                    <small>✍️ ${n.nome_autor}</small>
+                    <small>Postado por: <strong>${n.nome_autor}</strong></small>
                 </div>
             </div>
         </article>
@@ -160,25 +156,33 @@ async function carregarGestaoAdmin() {
   }
 }
 
-function abrirNoticiaCompleta(id) {
-  const noticia = todasNoticias.find((n) => n.id === id);
-  if (!noticia) return;
+async function abrirNoticiaCompleta(id) {
+  const { data: n, error } = await _supabase
+    .from("notificacoes")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  const foco = document.getElementById("conteudo-noticia-foco");
-  foco.innerHTML = `
-        ${noticia.imagem_url ? `<img src="${noticia.imagem_url}" class="noticia-full-img">` : ""}
-        <div class="noticia-full-header">
-            <h2>${noticia.titulo}</h2>
-            <div class="noticia-full-meta">
-                Postado em ${new Date(noticia.criado_em).toLocaleDateString()} por <strong>${noticia.nome_autor}</strong> (${noticia.cargo_autor})
+  if (n) {
+    const textoComLinks = transformarLinks(n.conteudo_completo); // Ativa os links apenas aqui
+
+    // CORREÇÃO: Usando o ID 'conteudo-noticia-foco' que está no seu index.html
+    document.getElementById("conteudo-noticia-foco").innerHTML = `
+            ${n.imagem_url ? `<img src="${n.imagem_url}" class="noticia-full-img">` : ""}
+            <div class="noticia-full-header">
+                <h2>${n.titulo}</h2>
+                <p class="tag">${n.categoria}</p>
             </div>
-        </div>
-        <div class="noticia-full-text">
-            ${noticia.conteudo_completo || noticia.descricao_breve}
-        </div>
-    `;
+            <div class="noticia-full-meta">
+                Postado por: ${n.nome_autor} | Data: ${new Date(n.criado_em).toLocaleDateString()}
+            </div>
+            <div class="noticia-full-text">
+                ${textoComLinks} 
+            </div>
+        `;
 
-  document.getElementById("modal-leitura").style.display = "flex";
+    document.getElementById("modal-leitura").style.display = "flex";
+  }
 }
 
 function fecharNoticia() {
@@ -195,59 +199,40 @@ async function deletarNoticia(id) {
     .single();
   if (!noticia) return;
 
-  if (confirm(`A notícia "${noticia.titulo}" será arquivada. Confirmar?`)) {
+  if (confirm(`Arquivar "${noticia.titulo}"?`)) {
     const {
       data: { user },
     } = await _supabase.auth.getUser();
 
-    // Criamos o objeto de arquivo de forma limpa
-    const dadosArquivo = {
-      id: noticia.id,
-      titulo: noticia.titulo,
-      categoria: noticia.categoria,
-      descricao_breve: noticia.descricao_breve,
-      conteudo_completo: noticia.conteudo_completo,
-      imagem_url: noticia.imagem_url,
-      data_publicacao: noticia.data_publicacao,
-      nome_autor: noticia.nome_autor,
-      cargo_autor: noticia.cargo_autor,
-      autor_id: noticia.autor_id,
-      criado_em: noticia.criado_em,
-      data_expiracao: noticia.data_expiracao,
-      arquivado_em: new Date().toISOString(),
-      arquivado_por_nome: user.user_metadata.nome_completo,
-      arquivado_por_cargo: user.user_metadata.cargo,
-    };
-
-    // 1. Tenta arquivar (upsert evita o erro de ID já existente)
-    const { error: erroArquivo } = await _supabase
+    // 1. Arquiva
+    const { error: errArq } = await _supabase
       .from("notificacoes_arquivadas")
-      .upsert([dadosArquivo]);
+      .upsert([
+        {
+          ...noticia,
+          arquivado_por_id: user.id,
+          arquivado_por_nome: user.user_metadata.nome_completo,
+        },
+      ]);
+    if (errArq) return alert("Erro no arquivo");
 
-    if (erroArquivo) {
-      console.error("Erro no Supabase:", erroArquivo.message);
-      alert("Erro técnico ao arquivar: " + erroArquivo.message);
-      return;
-    }
+    // 2. Log (enquanto o ID existe)
+    await registrarLog(
+      "Arquivou",
+      noticia.titulo,
+      id,
+      "Movido para o histórico",
+    );
 
-    // 2. Se o arquivo funcionou, agora deleta do mural
-    const { error: erroDelete } = await _supabase
+    // 3. Deleta do mural
+    const { error: errDel } = await _supabase
       .from("notificacoes")
       .delete()
       .eq("id", id);
 
-    if (!erroDelete) {
-      await registrarLog(
-        "Arquivou",
-        noticia.titulo,
-        id,
-        "Notícia movida para o arquivo histórico",
-      );
-      alert("Notícia arquivada com sucesso!");
-      carregarGestaoAdmin();
-      carregarLogs();
-    } else {
-      alert("Erro ao remover do mural: " + erroDelete.message);
+    if (!errDel) {
+      alert("Arquivado com sucesso!");
+      await carregarGestaoAdmin(); // Força a atualização da tabela na tela
     }
   }
 }
@@ -271,7 +256,6 @@ async function publicar() {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
-  if (!user) return alert("Sessão expirada. Faça login novamente.");
 
   const payload = {
     titulo: document.getElementById("titulo").value,
@@ -284,57 +268,45 @@ async function publicar() {
     cargo_autor: user.user_metadata.cargo,
   };
 
-  if (idEmEdicao) {
-    // Tentamos o update e pedimos os dados de volta com .select()
-    const { data, error } = await _supabase
-      .from("notificacoes")
-      .update(payload)
-      .eq("id", idEmEdicao)
-      .select();
-
-    if (error) {
-      alert("Erro técnico: " + error.message);
-    } else if (!data || data.length === 0) {
-      // Se cair aqui, o RLS barrou a edição!
-      alert(
-        "Atenção: Você não tem permissão para editar esta notícia (apenas o autor ou a Direção podem).",
-      );
+  try {
+    if (idEmEdicao) {
+      // EDIÇÃO
+      const { data, error } = await _supabase
+        .from("notificacoes")
+        .update(payload)
+        .eq("id", idEmEdicao)
+        .select();
+      if (error) throw error;
+      if (data.length > 0)
+        await registrarLog(
+          "Editou",
+          payload.titulo,
+          idEmEdicao,
+          "Alteração de dados",
+        );
     } else {
-      // SUCESSO REAL: Agora sim fazemos o log
-      await registrarLog(
-        "Editou",
-        payload.titulo,
-        idEmEdicao,
-        "Alteração realizada com sucesso por administrador/autor",
-      );
-      alert("Edição salva com sucesso!");
-      fecharModal();
-      carregarGestaoAdmin();
+      // CRIAÇÃO NOVO
+      payload.autor_id = user.id;
+      const { data, error } = await _supabase
+        .from("notificacoes")
+        .insert([payload])
+        .select();
+      if (error) throw error;
+      if (data)
+        await registrarLog(
+          "Criou",
+          payload.titulo,
+          data[0].id,
+          "Nova postagem",
+        );
     }
-  } else {
-    // --- LÓGICA DE CRIAR NOVO (INSERT) ---
-    payload.autor_id = user.id;
-    const { data, error } = await _supabase
-      .from("notificacoes")
-      .insert([payload])
-      .select(); // O .select() é vital para pegar o ID gerado para o log
 
-    if (error) {
-      alert("Erro ao publicar: " + error.message);
-    } else {
-      // Registra o log de criação com o ID recém-gerado
-      const novoId = data[0].id;
-      await registrarLog(
-        "Criou",
-        payload.titulo,
-        novoId,
-        "Nova notícia publicada",
-      );
-      alert("Publicado com sucesso!");
-      fecharModal();
-      carregarGestaoAdmin();
-      carregarLogs();
-    }
+    // SUCESSO TOTAL: Fecha, limpa e atualiza TUDO na ordem certa
+    alert("Operação realizada com sucesso!");
+    fecharModal();
+    await carregarGestaoAdmin(); // O await aqui garante que a tabela espere os dados chegarem
+  } catch (err) {
+    alert("Erro na operação: " + err.message);
   }
 }
 // 3. INICIALIZAÇÃO ÚNICA
@@ -479,13 +451,6 @@ async function exibirNomeHeader() {
   }
 }
 
-// Chame a função dentro do seu window.onload ou na inicialização
-window.onload = () => {
-  carregarMural();
-  carregarGestaoAdmin();
-  exibirNomeHeader(); // Garante que o nome mude assim que a página abrir
-};
-
 // 1. ATUALIZAÇÃO DA VERIFICAÇÃO DE CARGO
 async function verificarPermissoes() {
   // Pegamos as três sessões administrativas
@@ -554,22 +519,28 @@ async function carregarLogs() {
 
 // Função robusta de Auditoria
 async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
+  // 1. Pega o usuário logado
   const {
     data: { user },
   } = await _supabase.auth.getUser();
 
-  if (user && user.user_metadata) {
+  if (user) {
     const logData = {
+      usuario_id: user.id, // OBRIGATÓRIO: Deve ser o ID que existe em perfis_usuarios
       usuario_nome: user.user_metadata.nome_completo,
       usuario_cargo: user.user_metadata.cargo,
       acao: acao,
       item_titulo: itemTitulo,
-      noticia_id: noticiaId, // ID da notícia para rastreio
+      noticia_id: noticiaId,
       detalhes: detalhes,
     };
 
+    // 2. Insere na tabela de logs
     const { error } = await _supabase.from("logs_atividades").insert([logData]);
-    if (error) console.error("Falha ao registrar log:", error.message);
+
+    if (error) {
+      console.error("Erro ao registrar log:", error.message);
+    }
   }
 }
 
@@ -709,6 +680,15 @@ async function salvarEdicaoUsuario() {
   }
 }
 
+function transformarLinks(texto) {
+  if (!texto) return "";
+  // Expressão regular que identifica URLs no texto
+  const regexUrl = /(https?:\/\/[^\s]+)/g;
+  return texto.replace(regexUrl, (url) => {
+    return `<a href="${url}" target="_blank" class="link-mural">${url}</a>`;
+  });
+}
+
 function fecharModalUsuario() {
   document.getElementById("modal-usuario").style.display = "none";
 }
@@ -720,11 +700,3 @@ window.onload = () => {
   exibirNomeHeader();
   verificarPermissoes(); // Nova verificação de segurança
 };
-
-// Garante que o código rode apenas quando o HTML estiver pronto
-window.addEventListener("DOMContentLoaded", iniciar);
-
-// Garante que o HTML consiga "enxergar" as funções
-window.prepararEdicaoUsuario = prepararEdicaoUsuario;
-window.salvarEdicaoUsuario = salvarEdicaoUsuario;
-window.fecharModalUsuario = fecharModalUsuario;
