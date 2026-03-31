@@ -35,8 +35,8 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 - [x] Infraestrutura de Dados
 
 ### Sprint 5 (25/03 - 31/04):
-- [ ] Implementar o upload de dados
-- [ ] Implementar abas de diferentes informes
+- [x] Implementar o upload de dados
+- [x] Implementar abas de diferentes informes
 
 ### Sprint 6 (01/05 - 07/05):
 - [ ] Implementar filtros por data e por tipo de aviso
