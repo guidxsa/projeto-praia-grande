@@ -480,3 +480,35 @@ body {
   font-weight: bold;
   color: #666;
 }
+
+.link-mural {
+  color: #2563eb; /* Azul moderno */
+  text-decoration: underline;
+  font-weight: bold;
+  word-break: break-all; /* Evita que links gigantes quebrem o layout */
+}
+
+.link-mural:hover {
+  color: #1d4ed8;
+}
+
+.card-noticia {
+  background: white;
+  border: 1px solid #e1e1e1; /* A borda que sumiu */
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Aquela sombra elegante */
+  transition: transform 0.2s;
+}
+
+.card-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover; /* Faz a imagem preencher o espaço sem distorcer */
+}
+
+.card-content {
+  padding: 20px;
+}
