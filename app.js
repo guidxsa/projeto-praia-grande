@@ -3,20 +3,32 @@ const supabaseUrl = "https://nnnniaoribyqkcxtbpvr.supabase.co";
 const supabaseKey = "sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz";
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+
 // Estado global
 let todasNoticias = [];
 let idEmEdicao = null;
+
 
 // Paginação dos logs
 let paginaLogsAtual = 1;
 const logsPorPagina = 15;
 let totalPaginasLogs = 1;
 
+
+// Filtros dos logs
+let filtrosLogs = {
+  acao: "",
+  dataInicio: "",
+  dataFim: "",
+};
+
+
 // Carregamento Automático
 async function init() {
   if (document.getElementById("mural-noticias")) {
     await carregarMural();
   }
+
 
   if (
     document.getElementById("tabela-ativas") ||
@@ -25,18 +37,22 @@ async function init() {
     await carregarGestaoAdmin();
   }
 
+
   await exibirNomeHeader();
   await verificarPermissoes();
 }
+
 
 async function carregarMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
+
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
     .order("criado_em", { ascending: false });
+
 
   if (error) {
     mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
@@ -44,9 +60,27 @@ async function carregarMural() {
     return;
   }
 
+
   if (noticias) {
     todasNoticias = noticias;
     renderizarMural(noticias);
+  }
+}
+
+
+function ajustarLayoutMural() {
+  const mural = document.getElementById("mural-noticias");
+  if (!mural) return;
+
+  const totalCards = mural.querySelectorAll(".card-noticia").length;
+  mural.classList.remove("grid-1-item", "grid-2-items", "grid-3-items");
+
+  if (totalCards === 1) {
+    mural.classList.add("grid-1-item");
+  } else if (totalCards === 2) {
+    mural.classList.add("grid-2-items");
+  } else if (totalCards === 3) {
+    mural.classList.add("grid-3-items");
   }
 }
 
@@ -54,10 +88,13 @@ function renderizarMural(lista) {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
+
   if (!lista || lista.length === 0) {
     mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
+    ajustarLayoutMural();
     return;
   }
+
 
   mural.innerHTML = lista
     .map(
@@ -76,14 +113,19 @@ function renderizarMural(lista) {
     `,
     )
     .join("");
+
+  ajustarLayoutMural();
 }
+
 
 function filtrar(cat, elemento) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
 
+
   if (elemento) {
     elemento.classList.add("active");
   }
+
 
   if (cat === "Todas") {
     renderizarMural(todasNoticias);
@@ -93,11 +135,14 @@ function filtrar(cat, elemento) {
   }
 }
 
+
 function buscar() {
   const inputBusca = document.getElementById("input-busca");
   if (!inputBusca) return;
 
+
   const termo = inputBusca.value.toLowerCase();
+
 
   const filtradas = todasNoticias.filter(
     (n) =>
@@ -105,47 +150,58 @@ function buscar() {
       (n.descricao_breve || "").toLowerCase().includes(termo),
   );
 
+
   renderizarMural(filtradas);
 }
+
 
 async function carregarGestaoAdmin() {
   const corpoAtivas = document.getElementById("tabela-ativas");
   const corpoExpiradas = document.getElementById("tabela-expiradas");
 
+
   if (!corpoAtivas || !corpoExpiradas) return;
+
 
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
     .order("criado_em", { ascending: false });
 
+
   if (error) {
     console.error("Erro ao carregar notificações:", error.message);
     return;
   }
 
+
   if (noticias) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
+
 
     let listaAtivas = "";
     let listaExpiradas = "";
     let contAtivas = 0;
     let contExpiradas = 0;
 
+
     noticias.forEach((n) => {
       const dataPost = n.criado_em
         ? new Date(n.criado_em).toLocaleDateString()
         : "---";
 
+
       let dataExpFormatada = "Sem expiração";
       let expirou = false;
+
 
       if (n.data_expiracao) {
         const dataExp = new Date(n.data_expiracao + "T00:00:00");
         dataExpFormatada = dataExp.toLocaleDateString();
         if (dataExp < hoje) expirou = true;
       }
+
 
       const linhaHtml = `
         <tr>
@@ -160,6 +216,7 @@ async function carregarGestaoAdmin() {
         </tr>
       `;
 
+
       if (expirou) {
         listaExpiradas += linhaHtml;
         contExpiradas++;
@@ -169,22 +226,27 @@ async function carregarGestaoAdmin() {
       }
     });
 
+
     corpoAtivas.innerHTML =
       listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
+
 
     corpoExpiradas.innerHTML =
       listaExpiradas ||
       '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
 
+
     const totalNotif = document.getElementById("total-notif");
     const ativasNotif = document.getElementById("ativas-notif");
     const expiradasNotif = document.getElementById("expiradas-notif");
+
 
     if (totalNotif) totalNotif.innerText = noticias.length;
     if (ativasNotif) ativasNotif.innerText = contAtivas;
     if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
   }
 }
+
 
 async function abrirNoticiaCompleta(id) {
   const { data: n, error } = await _supabase
@@ -193,23 +255,28 @@ async function abrirNoticiaCompleta(id) {
     .eq("id", id)
     .single();
 
+
   if (error) {
     console.error("Erro ao abrir notícia:", error.message);
     return;
   }
 
+
   if (n) {
     const textoComLinks = transformarLinks(n.conteudo_completo);
+
 
     const conteudoFoco = document.getElementById("conteudo-noticia-foco");
     const modalLeitura = document.getElementById("modal-leitura");
 
+
     if (!conteudoFoco || !modalLeitura) return;
 
+
     conteudoFoco.innerHTML = `
-      ${n.imagem_url ? `<img src="${n.imagem_url}" class="noticia-full-img">` : ""}
+      ${n.imagem_url ? `<img src="${n.imagem_url}" class="noticia-full-img" alt="Imagem da notícia">` : ""}
       <div class="noticia-full-header">
-        <h2>${n.titulo}</h2>
+        <h2 id="titulo-modal-leitura">${n.titulo}</h2>
         <p class="tag">${n.categoria}</p>
       </div>
       <div class="noticia-full-meta">
@@ -220,14 +287,21 @@ async function abrirNoticiaCompleta(id) {
       </div>
     `;
 
+
     modalLeitura.style.display = "flex";
+
+
+    const botaoFechar = modalLeitura.querySelector(".close-btn");
+    if (botaoFechar) botaoFechar.focus();
   }
 }
+
 
 function fecharNoticia() {
   const modal = document.getElementById("modal-leitura");
   if (modal) modal.style.display = "none";
 }
+
 
 async function deletarNoticia(id) {
   const { data: noticia } = await _supabase
@@ -236,12 +310,15 @@ async function deletarNoticia(id) {
     .eq("id", id)
     .single();
 
+
   if (!noticia) return;
+
 
   if (confirm(`Arquivar "${noticia.titulo}"?`)) {
     const {
       data: { user },
     } = await _supabase.auth.getUser();
+
 
     const { error: errArq } = await _supabase
       .from("notificacoes_arquivadas")
@@ -253,7 +330,9 @@ async function deletarNoticia(id) {
         },
       ]);
 
+
     if (errArq) return alert("Erro no arquivo");
+
 
     await registrarLog(
       "Arquivou",
@@ -262,10 +341,12 @@ async function deletarNoticia(id) {
       "Movido para o histórico",
     );
 
+
     const { error: errDel } = await _supabase
       .from("notificacoes")
       .delete()
       .eq("id", id);
+
 
     if (!errDel) {
       alert("Arquivado com sucesso!");
@@ -274,12 +355,14 @@ async function deletarNoticia(id) {
   }
 }
 
+
 // LOGIN E LOGOUT
 async function fazerLogin() {
   const { error } = await _supabase.auth.signInWithPassword({
     email: document.getElementById("email").value,
     password: document.getElementById("senha").value,
   });
+
 
   if (error) {
     alert(error.message);
@@ -288,15 +371,18 @@ async function fazerLogin() {
   }
 }
 
+
 async function fazerLogout() {
   await _supabase.auth.signOut();
   window.location.href = "index.html";
 }
 
+
 async function publicar() {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
   const payload = {
     titulo: document.getElementById("titulo").value,
@@ -309,6 +395,7 @@ async function publicar() {
     cargo_autor: user.user_metadata.cargo,
   };
 
+
   try {
     if (idEmEdicao) {
       const { data, error } = await _supabase
@@ -317,7 +404,9 @@ async function publicar() {
         .eq("id", idEmEdicao)
         .select();
 
+
       if (error) throw error;
+
 
       if (data.length > 0) {
         await registrarLog(
@@ -330,12 +419,15 @@ async function publicar() {
     } else {
       payload.autor_id = user.id;
 
+
       const { data, error } = await _supabase
         .from("notificacoes")
         .insert([payload])
         .select();
 
+
       if (error) throw error;
+
 
       if (data) {
         await registrarLog(
@@ -347,6 +439,7 @@ async function publicar() {
       }
     }
 
+
     alert("Operação realizada com sucesso!");
     fecharModal();
     await carregarGestaoAdmin();
@@ -355,11 +448,13 @@ async function publicar() {
   }
 }
 
+
 function iniciar() {
   console.log("Iniciando carregamento das páginas...");
   carregarMural();
   carregarGestaoAdmin();
 }
+
 
 async function prepararEdicao(id) {
   const { data: noticia, error } = await _supabase
@@ -368,13 +463,16 @@ async function prepararEdicao(id) {
     .eq("id", id)
     .single();
 
+
   if (error) {
     console.error("Erro ao preparar edição:", error.message);
     return;
   }
 
+
   if (noticia) {
     idEmEdicao = id;
+
 
     document.getElementById("titulo").value = noticia.titulo;
     document.getElementById("categoria").value = noticia.categoria;
@@ -385,35 +483,45 @@ async function prepararEdicao(id) {
     document.getElementById("data-expiracao").value =
       noticia.data_expiracao || "";
 
+
     document.querySelector(".modal-header h2").innerText = "Editar Notificação";
     document.querySelector(".btn-postar").innerText = "Salvar Alterações";
+
 
     document.getElementById("modal").style.display = "flex";
   }
 }
 
+
 function fecharModal() {
   idEmEdicao = null;
+
 
   const modal = document.getElementById("modal");
   if (modal) modal.style.display = "none";
 
+
   const tituloModal = document.querySelector(".modal-header h2");
   const botaoPostar = document.querySelector(".btn-postar");
 
+
   if (tituloModal) tituloModal.innerText = "Nova Notificação";
   if (botaoPostar) botaoPostar.innerText = "Publicar Notificação";
+
 
   const campos = document.querySelectorAll(
     "#modal input, #modal textarea, #modal select",
   );
 
+
   campos.forEach((campo) => {
     campo.value = "";
   });
 
+
   console.log("Modal resetado: pronto para novo cadastro.");
 }
+
 
 async function cadastrarFuncionario() {
   const nome = document.getElementById("novo-nome").value;
@@ -422,11 +530,13 @@ async function cadastrarFuncionario() {
   const password = document.getElementById("nova-senha").value;
   const msg = document.getElementById("msg-cadastro");
 
+
   if (!nome || !email || !password) {
     msg.innerText = "Preencha todos os campos!";
     msg.style.color = "red";
     return;
   }
+
 
   const { data: authData, error: authError } = await _supabase.auth.signUp({
     email: email,
@@ -434,10 +544,12 @@ async function cadastrarFuncionario() {
     options: { data: { nome_completo: nome, cargo: cargo } },
   });
 
+
   if (authError) {
     msg.innerText = "Erro no cadastro: " + authError.message;
     return;
   }
+
 
   const { error: perfilError } = await _supabase
     .from("perfis_usuarios")
@@ -451,6 +563,7 @@ async function cadastrarFuncionario() {
       },
     ]);
 
+
   if (perfilError) {
     msg.innerText =
       "Usuário criado, mas erro ao gerar perfil: " + perfilError.message;
@@ -458,11 +571,14 @@ async function cadastrarFuncionario() {
     msg.innerText = "Funcionário cadastrado com sucesso!";
     msg.style.color = "green";
 
+
     document
       .querySelectorAll("#novo-nome, #novo-email, #nova-senha")
       .forEach((i) => (i.value = ""));
 
+
     carregarUsuarios();
+
 
     await registrarLog(
       "Cadastrou Usuário",
@@ -473,13 +589,16 @@ async function cadastrarFuncionario() {
   }
 }
 
+
 async function exibirNomeHeader() {
   const nomeHeader = document.getElementById("nome-usuario-header");
   if (!nomeHeader) return;
 
+
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
   if (user && user.user_metadata) {
     const nome = user.user_metadata.nome_completo || "Funcionário";
@@ -489,28 +608,85 @@ async function exibirNomeHeader() {
   }
 }
 
+
 async function verificarPermissoes() {
   const sessaoCadastro = document.getElementById("sessao-cadastro");
   const sessaoLogs = document.getElementById("sessao-logs");
   const sessaoUsuarios = document.getElementById("sessao-usuarios");
 
+
   const {
     data: { user },
   } = await _supabase.auth.getUser();
 
+
   if (user && user.user_metadata) {
     const cargo = user.user_metadata.cargo;
+
 
     if (cargo === "Direção") {
       if (sessaoCadastro) sessaoCadastro.style.display = "block";
       if (sessaoLogs) sessaoLogs.style.display = "block";
       if (sessaoUsuarios) sessaoUsuarios.style.display = "block";
 
+
       if (sessaoLogs) await carregarLogs(1);
       if (sessaoUsuarios) await carregarUsuarios();
     }
   }
 }
+
+
+function alternarFiltrosLogs() {
+  const painel = document.getElementById("painel-filtros-logs");
+  const botao = document.getElementById("btn-filtrar-logs");
+
+
+  if (!painel || !botao) return;
+
+
+  const aberto = painel.style.display === "block";
+  painel.style.display = aberto ? "none" : "block";
+  botao.setAttribute("aria-expanded", aberto ? "false" : "true");
+}
+
+
+function aplicarFiltroLogs() {
+  const filtroAcao = document.getElementById("filtro-acao-logs");
+  const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
+  const filtroDataFim = document.getElementById("filtro-data-fim-logs");
+
+
+  filtrosLogs.acao = filtroAcao ? filtroAcao.value : "";
+  filtrosLogs.dataInicio = filtroDataInicio ? filtroDataInicio.value : "";
+  filtrosLogs.dataFim = filtroDataFim ? filtroDataFim.value : "";
+
+
+  carregarLogs(1);
+}
+
+
+function removerFiltroLogs() {
+  filtrosLogs = {
+    acao: "",
+    dataInicio: "",
+    dataFim: "",
+  };
+
+
+  const filtroAcao = document.getElementById("filtro-acao-logs");
+  const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
+  const filtroDataFim = document.getElementById("filtro-data-fim-logs");
+
+
+  if (filtroAcao) filtroAcao.value = "";
+  if (filtroDataInicio) filtroDataInicio.value = "";
+  if (filtroDataFim) filtroDataFim.value = "";
+
+
+  carregarLogs(1);
+}
+
 
 async function carregarLogs(pagina = 1) {
   const corpoLogs = document.getElementById("tabela-logs");
@@ -519,18 +695,40 @@ async function carregarLogs(pagina = 1) {
   const btnAnterior = document.getElementById("btn-pagina-anterior");
   const btnProxima = document.getElementById("btn-proxima-pagina");
 
+
   if (!corpoLogs) return;
 
+
   paginaLogsAtual = pagina;
+
 
   const inicio = (pagina - 1) * logsPorPagina;
   const fim = inicio + logsPorPagina - 1;
 
-  const { data: logs, error, count } = await _supabase
+
+  let query = _supabase
     .from("logs_atividades")
     .select("*", { count: "exact" })
-    .order("criado_em", { ascending: false })
-    .range(inicio, fim);
+    .order("criado_em", { ascending: false });
+
+
+  if (filtrosLogs.acao) {
+    query = query.eq("acao", filtrosLogs.acao);
+  }
+
+
+  if (filtrosLogs.dataInicio) {
+    query = query.gte("criado_em", `${filtrosLogs.dataInicio}T00:00:00`);
+  }
+
+
+  if (filtrosLogs.dataFim) {
+    query = query.lte("criado_em", `${filtrosLogs.dataFim}T23:59:59`);
+  }
+
+
+  const { data: logs, error, count } = await query.range(inicio, fim);
+
 
   if (error) {
     console.error("Erro ao buscar logs:", error.message);
@@ -539,13 +737,16 @@ async function carregarLogs(pagina = 1) {
     return;
   }
 
+
   totalPaginasLogs = Math.max(1, Math.ceil((count || 0) / logsPorPagina));
 
+
   if (!logs || logs.length === 0) {
-    corpoLogs.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum log registrado ainda. Tente criar ou editar uma notícia.</td></tr>`;
+    corpoLogs.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
     if (paginacao) paginacao.style.display = "none";
     return;
   }
+
 
   corpoLogs.innerHTML = logs
     .map(
@@ -561,32 +762,39 @@ async function carregarLogs(pagina = 1) {
     )
     .join("");
 
+
   if (paginacao) {
     paginacao.style.display = totalPaginasLogs > 1 ? "flex" : "none";
   }
+
 
   if (infoPagina) {
     infoPagina.innerText = `Página ${paginaLogsAtual} de ${totalPaginasLogs}`;
   }
 
+
   if (btnAnterior) {
     btnAnterior.disabled = paginaLogsAtual === 1;
   }
+
 
   if (btnProxima) {
     btnProxima.disabled = paginaLogsAtual === totalPaginasLogs;
   }
 }
 
+
 function irParaPaginaLogs(pagina) {
   if (pagina < 1 || pagina > totalPaginasLogs) return;
   carregarLogs(pagina);
 }
 
+
 async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
   if (user) {
     const logData = {
@@ -599,7 +807,9 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
       detalhes: detalhes,
     };
 
+
     const { error } = await _supabase.from("logs_atividades").insert([logData]);
+
 
     if (error) {
       console.error("Erro ao registrar log:", error.message);
@@ -607,19 +817,23 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
   }
 }
 
+
 async function carregarUsuarios() {
   const corpo = document.getElementById("tabela-usuarios");
   if (!corpo) return;
+
 
   const { data: usuarios, error } = await _supabase
     .from("perfis_usuarios")
     .select("*")
     .order("nome_completo");
 
+
   if (error) {
     console.error("Erro ao carregar usuários:", error.message);
     return;
   }
+
 
   if (usuarios) {
     corpo.innerHTML = usuarios
@@ -641,6 +855,7 @@ async function carregarUsuarios() {
   }
 }
 
+
 async function arquivarUsuario(id, nome) {
   if (confirm(`Deseja desativar o acesso de ${nome}?`)) {
     const { error } = await _supabase
@@ -648,15 +863,18 @@ async function arquivarUsuario(id, nome) {
       .update({ status: "Arquivado" })
       .eq("id", id);
 
+
     if (!error) {
       await registrarLog("Arquivou Usuário", nome, id);
       alert("Usuário arquivado!");
+
 
       carregarUsuarios();
       carregarLogs(1);
     }
   }
 }
+
 
 async function prepararEdicaoUsuario(id) {
   const { data: usuario, error } = await _supabase
@@ -665,15 +883,18 @@ async function prepararEdicaoUsuario(id) {
     .eq("id", id)
     .single();
 
+
   if (error) {
     console.error("Erro ao buscar usuário:", error.message);
     return;
   }
 
+
   if (usuario) {
     document.getElementById("edit-user-id").value = usuario.id;
     document.getElementById("edit-user-nome").value = usuario.nome_completo;
     document.getElementById("edit-user-cargo").value = usuario.cargo;
+
 
     const modal = document.getElementById("modal-usuario");
     if (modal) {
@@ -684,10 +905,12 @@ async function prepararEdicaoUsuario(id) {
   }
 }
 
+
 async function salvarEdicaoUsuario() {
   const id = document.getElementById("edit-user-id").value;
   const novoNome = document.getElementById("edit-user-nome").value;
   const novoCargo = document.getElementById("edit-user-cargo").value;
+
 
   const { error } = await _supabase
     .from("perfis_usuarios")
@@ -696,6 +919,7 @@ async function salvarEdicaoUsuario() {
       cargo: novoCargo,
     })
     .eq("id", id);
+
 
   if (error) {
     alert("Erro ao atualizar: " + error.message);
@@ -707,6 +931,7 @@ async function salvarEdicaoUsuario() {
       `Alterou cargo para ${novoCargo}`,
     );
 
+
     alert("Dados do funcionário atualizados!");
     fecharModalUsuario();
     carregarUsuarios();
@@ -714,19 +939,37 @@ async function salvarEdicaoUsuario() {
   }
 }
 
+
 function transformarLinks(texto) {
   if (!texto) return "";
 
+
   const regexUrl = /(https?:\/\/[^\s]+)/g;
   return texto.replace(regexUrl, (url) => {
-    return `<a href="${url}" target="_blank" class="link-mural">${url}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="link-mural">${url}</a>`;
   });
 }
+
 
 function fecharModalUsuario() {
   const modal = document.getElementById("modal-usuario");
   if (modal) modal.style.display = "none";
 }
+
+
+document.addEventListener("keydown", (event) => {
+  const modalLeitura = document.getElementById("modal-leitura");
+  if (!modalLeitura) return;
+
+
+  const modalAberto = modalLeitura.style.display === "flex";
+
+
+  if (event.key === "Escape" && modalAberto) {
+    fecharNoticia();
+  }
+});
+
 
 window.onload = () => {
   init();

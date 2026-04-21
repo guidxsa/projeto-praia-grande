@@ -22,11 +22,11 @@
     <main class="container">
         <section class="filters-container">
             <div class="category-tabs">
-                <button class="tab active" onclick="filtrar('Todas')">Todas</button>
-                <button class="tab" onclick="filtrar('Notícia')">Notícias</button>
-                <button class="tab" onclick="filtrar('Reunião')">Reuniões</button>
-                <button class="tab" onclick="filtrar('Evento')">Eventos</button>
-                <button class="tab" onclick="filtrar('Aviso')">Avisos</button>
+                <button class="tab active" onclick="filtrar('Todas', this)">Todas</button>
+                <button class="tab" onclick="filtrar('Notícia', this)">Notícias</button>
+                <button class="tab" onclick="filtrar('Reunião', this)">Reuniões</button>
+                <button class="tab" onclick="filtrar('Evento', this)">Eventos</button>
+                <button class="tab" onclick="filtrar('Aviso', this)">Avisos</button>
             </div>
             <div class="search-bar">
                 <input type="text" id="input-busca" placeholder="Digite para buscar..." onkeyup="buscar()">
@@ -38,10 +38,29 @@
         </section>
     </main>
     
-    <div id="modal-leitura" class="modal-overlay" style="display:none;">
+    <div
+        id="modal-leitura"
+        class="modal-overlay"
+        style="display:none;"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-leitura"
+    >
         <div class="modal-content-full">
-            <button class="close-btn" onclick="fecharNoticia()">×</button>
-            <div id="conteudo-noticia-foco">
+            <div class="modal-news-shell">
+                <div class="modal-news-topbar">
+                    <button
+                        class="close-btn"
+                        type="button"
+                        onclick="fecharNoticia()"
+                        aria-label="Fechar notícia"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <div id="conteudo-noticia-foco">
+                </div>
             </div>
         </div>
     </div>
