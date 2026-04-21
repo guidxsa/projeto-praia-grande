@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestão de Equipe</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="main-header admin-header-shell">
+      <div class="admin-header-top">
+        <div class="page-identity">
+          <p class="page-kicker">Painel Administrativo</p>
+          <h1>Gestão de Equipe e Funcionários</h1>
+        </div>
+
+        <div class="user-info">
+          <span id="nome-usuario-header">Carregando...</span>
+          <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+        </div>
+      </div>
+
+      <nav class="admin-navbar" aria-label="Navegação administrativa">
+        <a href="admin.html" class="admin-nav-link">Estatísticas / Notificações</a>
+        <a href="equipe.html" class="admin-nav-link active" aria-current="page">Gestão de Equipe</a>
+        <a href="auditoria.html" class="admin-nav-link">Histórico de Auditoria</a>
+      </nav>
+    </header>
+
+    <main class="container admin-page-stack">
+      <section
+        id="sessao-cadastro"
+        class="table-container registration-module"
+        style="display: none"
+      >
+        <div class="module-header">
+          <div class="icon-circle">👤</div>
+          <div>
+            <h3>Gestão de Equipe</h3>
+            <p>Cadastre novos funcionários e defina seus níveis de acesso.</p>
+          </div>
+        </div>
+
+        <div class="registration-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="novo-nome">Nome Completo</label>
+              <input type="text" id="novo-nome" placeholder="Ex: Maria Silva" />
+            </div>
+            <div class="form-group">
+              <label for="novo-cargo">Cargo / Nível de Acesso</label>
+              <select id="novo-cargo">
+                <option value="Professor(a)">Professor(a)</option>
+                <option value="Secretaria">Secretaria</option>
+                <option value="Coordenação">Coordenação</option>
+                <option value="Direção">Direção</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="novo-email">E-mail Institucional</label>
+              <input
+                type="email"
+                id="novo-email"
+                placeholder="email@escola.com"
+              />
+            </div>
+            <div class="form-group">
+              <label for="nova-senha">Senha Provisória</label>
+              <input
+                type="password"
+                id="nova-senha"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-create-user" onclick="cadastrarFuncionario()">
+              <span>+</span> Criar Acesso do Funcionário
+            </button>
+          </div>
+          <p id="msg-cadastro" class="feedback-msg"></p>
+        </div>
+      </section>
+
+      <section
+        id="sessao-usuarios"
+        class="table-container"
+        style="display: none"
+      >
+        <div class="module-header">
+          <div class="icon-circle">👥</div>
+          <div>
+            <h3>Gestão de Funcionários</h3>
+            <p>Visualize, edite cargos ou desative acessos da equipe.</p>
+          </div>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Cargo</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-usuarios"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <div id="modal-usuario" class="modal" style="display: none">
+      <div class="modal-content admin-modal">
+        <div class="modal-header">
+          <h2>✏️ Editar Funcionário</h2>
+          <span class="close" onclick="fecharModalUsuario()">&times;</span>
+        </div>
+        <hr />
+        <div class="modal-body">
+          <input type="hidden" id="edit-user-id" />
+
+          <div class="form-group">
+            <label>Nome Completo</label>
+            <input
+              type="text"
+              id="edit-user-nome"
+              placeholder="Nome do funcionário"
+            />
+          </div>
+
+          <div class="form-group" style="margin-top: 15px">
+            <label>Cargo / Nível de Acesso</label>
+            <select id="edit-user-cargo">
+              <option value="Professor(a)">Professor(a)</option>
+              <option value="Secretaria">Secretaria</option>
+              <option value="Coordenação">Coordenação</option>
+              <option value="Direção">Direção</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="margin-top: 20px">
+          <button class="btn-postar" onclick="salvarEdicaoUsuario()">
+            Salvar Alterações
+          </button>
+          <button class="btn-cancelar" onclick="fecharModalUsuario()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

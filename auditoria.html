@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico de Auditoria</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <header class="main-header admin-header-shell">
+      <div class="admin-header-top">
+        <div class="page-identity">
+          <p class="page-kicker">Painel Administrativo</p>
+          <h1>Histórico de Auditoria</h1>
+        </div>
+
+        <div class="user-info">
+          <span id="nome-usuario-header">Carregando...</span>
+          <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+        </div>
+      </div>
+
+      <nav class="admin-navbar" aria-label="Navegação administrativa">
+        <a href="admin.html" class="admin-nav-link">Estatísticas / Notificações</a>
+        <a href="equipe.html" class="admin-nav-link">Gestão de Equipe</a>
+        <a href="auditoria.html" class="admin-nav-link active" aria-current="page">Histórico de Auditoria</a>
+      </nav>
+    </header>
+
+    <main class="container admin-page-stack">
+      <section
+        id="sessao-logs"
+        class="table-container"
+        style="margin-top: 0; display: none"
+      >
+        <div class="module-header">
+          <div class="icon-circle">📋</div>
+          <div>
+            <h3>Histórico de Auditoria</h3>
+            <p>Registro completo de todas as ações realizadas no sistema.</p>
+          </div>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Notícia</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-logs"></tbody>
+        </table>
+
+        <div id="logs-paginacao" class="pagination-container" style="display: none">
+          <button
+            id="btn-pagina-anterior"
+            class="pagination-btn"
+            onclick="irParaPaginaLogs(paginaLogsAtual - 1)"
+          >
+            ← Anterior
+          </button>
+
+          <span id="pagina-logs-info" class="pagination-info">Página 1 de 1</span>
+
+          <button
+            id="btn-proxima-pagina"
+            class="pagination-btn"
+            onclick="irParaPaginaLogs(paginaLogsAtual + 1)"
+          >
+            Próxima →
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
