@@ -29,14 +29,12 @@ async function init() {
     await carregarMural();
   }
 
-
   if (
     document.getElementById("tabela-ativas") ||
     document.getElementById("tabela-expiradas")
   ) {
     await carregarGestaoAdmin();
   }
-
 
   await exibirNomeHeader();
   await verificarPermissoes();
@@ -47,19 +45,16 @@ async function carregarMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
-
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
     .order("criado_em", { ascending: false });
-
 
   if (error) {
     mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
     console.error("Erro ao carregar mural:", error.message);
     return;
   }
-
 
   if (noticias) {
     todasNoticias = noticias;
@@ -88,13 +83,11 @@ function renderizarMural(lista) {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
-
   if (!lista || lista.length === 0) {
     mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
     ajustarLayoutMural();
     return;
   }
-
 
   mural.innerHTML = lista
     .map(
@@ -121,11 +114,9 @@ function renderizarMural(lista) {
 function filtrar(cat, elemento) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
 
-
   if (elemento) {
     elemento.classList.add("active");
   }
-
 
   if (cat === "Todas") {
     renderizarMural(todasNoticias);
@@ -140,16 +131,13 @@ function buscar() {
   const inputBusca = document.getElementById("input-busca");
   if (!inputBusca) return;
 
-
   const termo = inputBusca.value.toLowerCase();
-
 
   const filtradas = todasNoticias.filter(
     (n) =>
       (n.titulo || "").toLowerCase().includes(termo) ||
       (n.descricao_breve || "").toLowerCase().includes(termo),
   );
-
 
   renderizarMural(filtradas);
 }
@@ -159,49 +147,40 @@ async function carregarGestaoAdmin() {
   const corpoAtivas = document.getElementById("tabela-ativas");
   const corpoExpiradas = document.getElementById("tabela-expiradas");
 
-
   if (!corpoAtivas || !corpoExpiradas) return;
-
 
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
     .order("criado_em", { ascending: false });
 
-
   if (error) {
     console.error("Erro ao carregar notificações:", error.message);
     return;
   }
 
-
   if (noticias) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
-
 
     let listaAtivas = "";
     let listaExpiradas = "";
     let contAtivas = 0;
     let contExpiradas = 0;
 
-
     noticias.forEach((n) => {
       const dataPost = n.criado_em
         ? new Date(n.criado_em).toLocaleDateString()
         : "---";
 
-
       let dataExpFormatada = "Sem expiração";
       let expirou = false;
-
 
       if (n.data_expiracao) {
         const dataExp = new Date(n.data_expiracao + "T00:00:00");
         dataExpFormatada = dataExp.toLocaleDateString();
         if (dataExp < hoje) expirou = true;
       }
-
 
       const linhaHtml = `
         <tr>
@@ -216,7 +195,6 @@ async function carregarGestaoAdmin() {
         </tr>
       `;
 
-
       if (expirou) {
         listaExpiradas += linhaHtml;
         contExpiradas++;
@@ -226,20 +204,16 @@ async function carregarGestaoAdmin() {
       }
     });
 
-
     corpoAtivas.innerHTML =
       listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
-
 
     corpoExpiradas.innerHTML =
       listaExpiradas ||
       '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
 
-
     const totalNotif = document.getElementById("total-notif");
     const ativasNotif = document.getElementById("ativas-notif");
     const expiradasNotif = document.getElementById("expiradas-notif");
-
 
     if (totalNotif) totalNotif.innerText = noticias.length;
     if (ativasNotif) ativasNotif.innerText = contAtivas;
@@ -248,6 +222,19 @@ async function carregarGestaoAdmin() {
 }
 
 
+// ============================================================
+// FUNÇÃO ALTERADA — abrirNoticiaCompleta
+// Novo template editorial com hero image, meta, barra de progresso
+// ============================================================
+function formatarData(dataISO) {
+  if (!dataISO) return "Data não disponível";
+  return new Date(dataISO).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 async function abrirNoticiaCompleta(id) {
   const { data: n, error } = await _supabase
     .from("notificacoes")
@@ -255,41 +242,63 @@ async function abrirNoticiaCompleta(id) {
     .eq("id", id)
     .single();
 
-
   if (error) {
     console.error("Erro ao abrir notícia:", error.message);
     return;
   }
 
-
   if (n) {
     const textoComLinks = transformarLinks(n.conteudo_completo);
-
 
     const conteudoFoco = document.getElementById("conteudo-noticia-foco");
     const modalLeitura = document.getElementById("modal-leitura");
 
-
     if (!conteudoFoco || !modalLeitura) return;
 
+    const temImagem = !!n.imagem_url;
 
     conteudoFoco.innerHTML = `
-      ${n.imagem_url ? `<img src="${n.imagem_url}" class="noticia-full-img" alt="Imagem da notícia">` : ""}
-      <div class="noticia-full-header">
-        <h2 id="titulo-modal-leitura">${n.titulo}</h2>
-        <p class="tag">${n.categoria}</p>
-      </div>
-      <div class="noticia-full-meta">
-        Postado por: ${n.nome_autor} | Data: ${new Date(n.criado_em).toLocaleDateString()}
-      </div>
-      <div class="noticia-full-text">
-        ${textoComLinks}
+      <div class="${temImagem ? 'noticia-full-com-img' : 'noticia-full-no-img'}">
+
+        ${temImagem ? `
+        <div class="noticia-full-hero">
+          <img
+            src="${n.imagem_url}"
+            alt="${n.titulo || ''}"
+            class="noticia-full-img"
+            loading="lazy"
+          >
+        </div>` : ''}
+
+        <div class="noticia-full-body">
+          <span class="tag tag-${(n.categoria || '').toLowerCase()}">${n.categoria || ''}</span>
+
+          <div class="noticia-full-header">
+            <h2 id="titulo-modal-leitura">${n.titulo || ''}</h2>
+          </div>
+
+          <div class="noticia-full-meta">
+            <span class="noticia-full-meta-item">
+              <span class="noticia-full-meta-icon">📅</span>
+              ${formatarData(n.criado_em)}
+            </span>
+            ${n.nome_autor ? `
+            <span class="noticia-full-meta-sep">·</span>
+            <span class="noticia-full-meta-item">
+              <span class="noticia-full-meta-icon">✍️</span>
+              ${n.nome_autor}
+            </span>` : ''}
+          </div>
+
+          <div class="noticia-full-text">
+            ${textoComLinks}
+          </div>
+        </div>
+
       </div>
     `;
 
-
     modalLeitura.style.display = "flex";
-
 
     const botaoFechar = modalLeitura.querySelector(".close-btn");
     if (botaoFechar) botaoFechar.focus();
@@ -310,15 +319,12 @@ async function deletarNoticia(id) {
     .eq("id", id)
     .single();
 
-
   if (!noticia) return;
-
 
   if (confirm(`Arquivar "${noticia.titulo}"?`)) {
     const {
       data: { user },
     } = await _supabase.auth.getUser();
-
 
     const { error: errArq } = await _supabase
       .from("notificacoes_arquivadas")
@@ -330,9 +336,7 @@ async function deletarNoticia(id) {
         },
       ]);
 
-
     if (errArq) return alert("Erro no arquivo");
-
 
     await registrarLog(
       "Arquivou",
@@ -341,12 +345,10 @@ async function deletarNoticia(id) {
       "Movido para o histórico",
     );
 
-
     const { error: errDel } = await _supabase
       .from("notificacoes")
       .delete()
       .eq("id", id);
-
 
     if (!errDel) {
       alert("Arquivado com sucesso!");
@@ -362,7 +364,6 @@ async function fazerLogin() {
     email: document.getElementById("email").value,
     password: document.getElementById("senha").value,
   });
-
 
   if (error) {
     alert(error.message);
@@ -383,7 +384,6 @@ async function publicar() {
     data: { user },
   } = await _supabase.auth.getUser();
 
-
   const payload = {
     titulo: document.getElementById("titulo").value,
     categoria: document.getElementById("categoria").value,
@@ -395,7 +395,6 @@ async function publicar() {
     cargo_autor: user.user_metadata.cargo,
   };
 
-
   try {
     if (idEmEdicao) {
       const { data, error } = await _supabase
@@ -404,9 +403,7 @@ async function publicar() {
         .eq("id", idEmEdicao)
         .select();
 
-
       if (error) throw error;
-
 
       if (data.length > 0) {
         await registrarLog(
@@ -419,15 +416,12 @@ async function publicar() {
     } else {
       payload.autor_id = user.id;
 
-
       const { data, error } = await _supabase
         .from("notificacoes")
         .insert([payload])
         .select();
 
-
       if (error) throw error;
-
 
       if (data) {
         await registrarLog(
@@ -438,7 +432,6 @@ async function publicar() {
         );
       }
     }
-
 
     alert("Operação realizada com sucesso!");
     fecharModal();
@@ -463,16 +456,13 @@ async function prepararEdicao(id) {
     .eq("id", id)
     .single();
 
-
   if (error) {
     console.error("Erro ao preparar edição:", error.message);
     return;
   }
 
-
   if (noticia) {
     idEmEdicao = id;
-
 
     document.getElementById("titulo").value = noticia.titulo;
     document.getElementById("categoria").value = noticia.categoria;
@@ -483,10 +473,8 @@ async function prepararEdicao(id) {
     document.getElementById("data-expiracao").value =
       noticia.data_expiracao || "";
 
-
     document.querySelector(".modal-header h2").innerText = "Editar Notificação";
     document.querySelector(".btn-postar").innerText = "Salvar Alterações";
-
 
     document.getElementById("modal").style.display = "flex";
   }
@@ -496,28 +484,22 @@ async function prepararEdicao(id) {
 function fecharModal() {
   idEmEdicao = null;
 
-
   const modal = document.getElementById("modal");
   if (modal) modal.style.display = "none";
-
 
   const tituloModal = document.querySelector(".modal-header h2");
   const botaoPostar = document.querySelector(".btn-postar");
 
-
   if (tituloModal) tituloModal.innerText = "Nova Notificação";
   if (botaoPostar) botaoPostar.innerText = "Publicar Notificação";
-
 
   const campos = document.querySelectorAll(
     "#modal input, #modal textarea, #modal select",
   );
 
-
   campos.forEach((campo) => {
     campo.value = "";
   });
-
 
   console.log("Modal resetado: pronto para novo cadastro.");
 }
@@ -530,13 +512,11 @@ async function cadastrarFuncionario() {
   const password = document.getElementById("nova-senha").value;
   const msg = document.getElementById("msg-cadastro");
 
-
   if (!nome || !email || !password) {
     msg.innerText = "Preencha todos os campos!";
     msg.style.color = "red";
     return;
   }
-
 
   const { data: authData, error: authError } = await _supabase.auth.signUp({
     email: email,
@@ -544,12 +524,10 @@ async function cadastrarFuncionario() {
     options: { data: { nome_completo: nome, cargo: cargo } },
   });
 
-
   if (authError) {
     msg.innerText = "Erro no cadastro: " + authError.message;
     return;
   }
-
 
   const { error: perfilError } = await _supabase
     .from("perfis_usuarios")
@@ -563,7 +541,6 @@ async function cadastrarFuncionario() {
       },
     ]);
 
-
   if (perfilError) {
     msg.innerText =
       "Usuário criado, mas erro ao gerar perfil: " + perfilError.message;
@@ -571,14 +548,11 @@ async function cadastrarFuncionario() {
     msg.innerText = "Funcionário cadastrado com sucesso!";
     msg.style.color = "green";
 
-
     document
       .querySelectorAll("#novo-nome, #novo-email, #nova-senha")
       .forEach((i) => (i.value = ""));
 
-
     carregarUsuarios();
-
 
     await registrarLog(
       "Cadastrou Usuário",
@@ -594,11 +568,9 @@ async function exibirNomeHeader() {
   const nomeHeader = document.getElementById("nome-usuario-header");
   if (!nomeHeader) return;
 
-
   const {
     data: { user },
   } = await _supabase.auth.getUser();
-
 
   if (user && user.user_metadata) {
     const nome = user.user_metadata.nome_completo || "Funcionário";
@@ -614,21 +586,17 @@ async function verificarPermissoes() {
   const sessaoLogs = document.getElementById("sessao-logs");
   const sessaoUsuarios = document.getElementById("sessao-usuarios");
 
-
   const {
     data: { user },
   } = await _supabase.auth.getUser();
 
-
   if (user && user.user_metadata) {
     const cargo = user.user_metadata.cargo;
-
 
     if (cargo === "Direção") {
       if (sessaoCadastro) sessaoCadastro.style.display = "block";
       if (sessaoLogs) sessaoLogs.style.display = "block";
       if (sessaoUsuarios) sessaoUsuarios.style.display = "block";
-
 
       if (sessaoLogs) await carregarLogs(1);
       if (sessaoUsuarios) await carregarUsuarios();
@@ -641,9 +609,7 @@ function alternarFiltrosLogs() {
   const painel = document.getElementById("painel-filtros-logs");
   const botao = document.getElementById("btn-filtrar-logs");
 
-
   if (!painel || !botao) return;
-
 
   const aberto = painel.style.display === "block";
   painel.style.display = aberto ? "none" : "block";
@@ -656,11 +622,9 @@ function aplicarFiltroLogs() {
   const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
   const filtroDataFim = document.getElementById("filtro-data-fim-logs");
 
-
   filtrosLogs.acao = filtroAcao ? filtroAcao.value : "";
   filtrosLogs.dataInicio = filtroDataInicio ? filtroDataInicio.value : "";
   filtrosLogs.dataFim = filtroDataFim ? filtroDataFim.value : "";
-
 
   carregarLogs(1);
 }
@@ -673,16 +637,13 @@ function removerFiltroLogs() {
     dataFim: "",
   };
 
-
   const filtroAcao = document.getElementById("filtro-acao-logs");
   const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
   const filtroDataFim = document.getElementById("filtro-data-fim-logs");
 
-
   if (filtroAcao) filtroAcao.value = "";
   if (filtroDataInicio) filtroDataInicio.value = "";
   if (filtroDataFim) filtroDataFim.value = "";
-
 
   carregarLogs(1);
 }
@@ -695,40 +656,31 @@ async function carregarLogs(pagina = 1) {
   const btnAnterior = document.getElementById("btn-pagina-anterior");
   const btnProxima = document.getElementById("btn-proxima-pagina");
 
-
   if (!corpoLogs) return;
-
 
   paginaLogsAtual = pagina;
 
-
   const inicio = (pagina - 1) * logsPorPagina;
   const fim = inicio + logsPorPagina - 1;
-
 
   let query = _supabase
     .from("logs_atividades")
     .select("*", { count: "exact" })
     .order("criado_em", { ascending: false });
 
-
   if (filtrosLogs.acao) {
     query = query.eq("acao", filtrosLogs.acao);
   }
-
 
   if (filtrosLogs.dataInicio) {
     query = query.gte("criado_em", `${filtrosLogs.dataInicio}T00:00:00`);
   }
 
-
   if (filtrosLogs.dataFim) {
     query = query.lte("criado_em", `${filtrosLogs.dataFim}T23:59:59`);
   }
 
-
   const { data: logs, error, count } = await query.range(inicio, fim);
-
 
   if (error) {
     console.error("Erro ao buscar logs:", error.message);
@@ -737,16 +689,13 @@ async function carregarLogs(pagina = 1) {
     return;
   }
 
-
   totalPaginasLogs = Math.max(1, Math.ceil((count || 0) / logsPorPagina));
-
 
   if (!logs || logs.length === 0) {
     corpoLogs.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
     if (paginacao) paginacao.style.display = "none";
     return;
   }
-
 
   corpoLogs.innerHTML = logs
     .map(
@@ -762,21 +711,17 @@ async function carregarLogs(pagina = 1) {
     )
     .join("");
 
-
   if (paginacao) {
     paginacao.style.display = totalPaginasLogs > 1 ? "flex" : "none";
   }
-
 
   if (infoPagina) {
     infoPagina.innerText = `Página ${paginaLogsAtual} de ${totalPaginasLogs}`;
   }
 
-
   if (btnAnterior) {
     btnAnterior.disabled = paginaLogsAtual === 1;
   }
-
 
   if (btnProxima) {
     btnProxima.disabled = paginaLogsAtual === totalPaginasLogs;
@@ -795,7 +740,6 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
     data: { user },
   } = await _supabase.auth.getUser();
 
-
   if (user) {
     const logData = {
       usuario_id: user.id,
@@ -807,9 +751,7 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
       detalhes: detalhes,
     };
 
-
     const { error } = await _supabase.from("logs_atividades").insert([logData]);
-
 
     if (error) {
       console.error("Erro ao registrar log:", error.message);
@@ -822,18 +764,15 @@ async function carregarUsuarios() {
   const corpo = document.getElementById("tabela-usuarios");
   if (!corpo) return;
 
-
   const { data: usuarios, error } = await _supabase
     .from("perfis_usuarios")
     .select("*")
     .order("nome_completo");
 
-
   if (error) {
     console.error("Erro ao carregar usuários:", error.message);
     return;
   }
-
 
   if (usuarios) {
     corpo.innerHTML = usuarios
@@ -863,11 +802,9 @@ async function arquivarUsuario(id, nome) {
       .update({ status: "Arquivado" })
       .eq("id", id);
 
-
     if (!error) {
       await registrarLog("Arquivou Usuário", nome, id);
       alert("Usuário arquivado!");
-
 
       carregarUsuarios();
       carregarLogs(1);
@@ -883,18 +820,15 @@ async function prepararEdicaoUsuario(id) {
     .eq("id", id)
     .single();
 
-
   if (error) {
     console.error("Erro ao buscar usuário:", error.message);
     return;
   }
 
-
   if (usuario) {
     document.getElementById("edit-user-id").value = usuario.id;
     document.getElementById("edit-user-nome").value = usuario.nome_completo;
     document.getElementById("edit-user-cargo").value = usuario.cargo;
-
 
     const modal = document.getElementById("modal-usuario");
     if (modal) {
@@ -911,7 +845,6 @@ async function salvarEdicaoUsuario() {
   const novoNome = document.getElementById("edit-user-nome").value;
   const novoCargo = document.getElementById("edit-user-cargo").value;
 
-
   const { error } = await _supabase
     .from("perfis_usuarios")
     .update({
@@ -919,7 +852,6 @@ async function salvarEdicaoUsuario() {
       cargo: novoCargo,
     })
     .eq("id", id);
-
 
   if (error) {
     alert("Erro ao atualizar: " + error.message);
@@ -931,7 +863,6 @@ async function salvarEdicaoUsuario() {
       `Alterou cargo para ${novoCargo}`,
     );
 
-
     alert("Dados do funcionário atualizados!");
     fecharModalUsuario();
     carregarUsuarios();
@@ -942,7 +873,6 @@ async function salvarEdicaoUsuario() {
 
 function transformarLinks(texto) {
   if (!texto) return "";
-
 
   const regexUrl = /(https?:\/\/[^\s]+)/g;
   return texto.replace(regexUrl, (url) => {
@@ -961,9 +891,7 @@ document.addEventListener("keydown", (event) => {
   const modalLeitura = document.getElementById("modal-leitura");
   if (!modalLeitura) return;
 
-
   const modalAberto = modalLeitura.style.display === "flex";
-
 
   if (event.key === "Escape" && modalAberto) {
     fecharNoticia();
