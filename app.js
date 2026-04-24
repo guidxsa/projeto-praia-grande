@@ -4,15 +4,21 @@ const supabaseKey = "sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz";
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 
+
+
 // Estado global
 let todasNoticias = [];
 let idEmEdicao = null;
+
+
 
 
 // Paginação dos logs
 let paginaLogsAtual = 1;
 const logsPorPagina = 15;
 let totalPaginasLogs = 1;
+
+
 
 
 // Filtros dos logs
@@ -23,11 +29,14 @@ let filtrosLogs = {
 };
 
 
+
+
 // Carregamento Automático
 async function init() {
   if (document.getElementById("mural-noticias")) {
     await carregarMural();
   }
+
 
 
   if (
@@ -38,9 +47,12 @@ async function init() {
   }
 
 
+
   await exibirNomeHeader();
   await verificarPermissoes();
 }
+
+
 
 
 async function carregarMural() {
@@ -48,10 +60,12 @@ async function carregarMural() {
   if (!mural) return;
 
 
+
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
     .order("criado_em", { ascending: false });
+
 
 
   if (error) {
@@ -61,6 +75,7 @@ async function carregarMural() {
   }
 
 
+
   if (noticias) {
     todasNoticias = noticias;
     renderizarMural(noticias);
@@ -68,12 +83,16 @@ async function carregarMural() {
 }
 
 
+
+
 function ajustarLayoutMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
+
   const totalCards = mural.querySelectorAll(".card-noticia").length;
   mural.classList.remove("grid-1-item", "grid-2-items", "grid-3-items");
+
 
   if (totalCards === 1) {
     mural.classList.add("grid-1-item");
@@ -84,9 +103,11 @@ function ajustarLayoutMural() {
   }
 }
 
+
 function renderizarMural(lista) {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
+
 
 
   if (!lista || lista.length === 0) {
@@ -94,6 +115,7 @@ function renderizarMural(lista) {
     ajustarLayoutMural();
     return;
   }
+
 
 
   mural.innerHTML = lista
@@ -114,17 +136,22 @@ function renderizarMural(lista) {
     )
     .join("");
 
+
   ajustarLayoutMural();
 }
+
+
 
 
 function filtrar(cat, elemento) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
 
 
+
   if (elemento) {
     elemento.classList.add("active");
   }
+
 
 
   if (cat === "Todas") {
@@ -136,12 +163,16 @@ function filtrar(cat, elemento) {
 }
 
 
+
+
 function buscar() {
   const inputBusca = document.getElementById("input-busca");
   if (!inputBusca) return;
 
 
+
   const termo = inputBusca.value.toLowerCase();
+
 
 
   const filtradas = todasNoticias.filter(
@@ -151,8 +182,11 @@ function buscar() {
   );
 
 
+
   renderizarMural(filtradas);
 }
+
+
 
 
 async function carregarGestaoAdmin() {
@@ -160,7 +194,9 @@ async function carregarGestaoAdmin() {
   const corpoExpiradas = document.getElementById("tabela-expiradas");
 
 
+
   if (!corpoAtivas || !corpoExpiradas) return;
+
 
 
   const { data: noticias, error } = await _supabase
@@ -169,15 +205,18 @@ async function carregarGestaoAdmin() {
     .order("criado_em", { ascending: false });
 
 
+
   if (error) {
     console.error("Erro ao carregar notificações:", error.message);
     return;
   }
 
 
+
   if (noticias) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
+
 
 
     let listaAtivas = "";
@@ -186,14 +225,17 @@ async function carregarGestaoAdmin() {
     let contExpiradas = 0;
 
 
+
     noticias.forEach((n) => {
       const dataPost = n.criado_em
         ? new Date(n.criado_em).toLocaleDateString()
         : "---";
 
 
+
       let dataExpFormatada = "Sem expiração";
       let expirou = false;
+
 
 
       if (n.data_expiracao) {
@@ -201,6 +243,7 @@ async function carregarGestaoAdmin() {
         dataExpFormatada = dataExp.toLocaleDateString();
         if (dataExp < hoje) expirou = true;
       }
+
 
 
       const linhaHtml = `
@@ -217,6 +260,7 @@ async function carregarGestaoAdmin() {
       `;
 
 
+
       if (expirou) {
         listaExpiradas += linhaHtml;
         contExpiradas++;
@@ -227,8 +271,10 @@ async function carregarGestaoAdmin() {
     });
 
 
+
     corpoAtivas.innerHTML =
       listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
+
 
 
     corpoExpiradas.innerHTML =
@@ -236,9 +282,11 @@ async function carregarGestaoAdmin() {
       '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
 
 
+
     const totalNotif = document.getElementById("total-notif");
     const ativasNotif = document.getElementById("ativas-notif");
     const expiradasNotif = document.getElementById("expiradas-notif");
+
 
 
     if (totalNotif) totalNotif.innerText = noticias.length;
@@ -246,6 +294,8 @@ async function carregarGestaoAdmin() {
     if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
   }
 }
+
+
 
 
 async function abrirNoticiaCompleta(id) {
@@ -256,21 +306,26 @@ async function abrirNoticiaCompleta(id) {
     .single();
 
 
+
   if (error) {
     console.error("Erro ao abrir notícia:", error.message);
     return;
   }
 
 
+
   if (n) {
     const textoComLinks = transformarLinks(n.conteudo_completo);
+
 
 
     const conteudoFoco = document.getElementById("conteudo-noticia-foco");
     const modalLeitura = document.getElementById("modal-leitura");
 
 
+
     if (!conteudoFoco || !modalLeitura) return;
+
 
 
     conteudoFoco.innerHTML = `
@@ -288,7 +343,9 @@ async function abrirNoticiaCompleta(id) {
     `;
 
 
+
     modalLeitura.style.display = "flex";
+
 
 
     const botaoFechar = modalLeitura.querySelector(".close-btn");
@@ -297,10 +354,14 @@ async function abrirNoticiaCompleta(id) {
 }
 
 
+
+
 function fecharNoticia() {
   const modal = document.getElementById("modal-leitura");
   if (modal) modal.style.display = "none";
 }
+
+
 
 
 async function deletarNoticia(id) {
@@ -311,13 +372,16 @@ async function deletarNoticia(id) {
     .single();
 
 
+
   if (!noticia) return;
+
 
 
   if (confirm(`Arquivar "${noticia.titulo}"?`)) {
     const {
       data: { user },
     } = await _supabase.auth.getUser();
+
 
 
     const { error: errArq } = await _supabase
@@ -331,7 +395,9 @@ async function deletarNoticia(id) {
       ]);
 
 
+
     if (errArq) return alert("Erro no arquivo");
+
 
 
     await registrarLog(
@@ -342,10 +408,12 @@ async function deletarNoticia(id) {
     );
 
 
+
     const { error: errDel } = await _supabase
       .from("notificacoes")
       .delete()
       .eq("id", id);
+
 
 
     if (!errDel) {
@@ -356,12 +424,15 @@ async function deletarNoticia(id) {
 }
 
 
+
+
 // LOGIN E LOGOUT
 async function fazerLogin() {
   const { error } = await _supabase.auth.signInWithPassword({
     email: document.getElementById("email").value,
     password: document.getElementById("senha").value,
   });
+
 
 
   if (error) {
@@ -372,16 +443,21 @@ async function fazerLogin() {
 }
 
 
+
+
 async function fazerLogout() {
   await _supabase.auth.signOut();
   window.location.href = "index.html";
 }
 
 
+
+
 async function publicar() {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
 
   const payload = {
@@ -396,6 +472,7 @@ async function publicar() {
   };
 
 
+
   try {
     if (idEmEdicao) {
       const { data, error } = await _supabase
@@ -405,7 +482,9 @@ async function publicar() {
         .select();
 
 
+
       if (error) throw error;
+
 
 
       if (data.length > 0) {
@@ -420,13 +499,16 @@ async function publicar() {
       payload.autor_id = user.id;
 
 
+
       const { data, error } = await _supabase
         .from("notificacoes")
         .insert([payload])
         .select();
 
 
+
       if (error) throw error;
+
 
 
       if (data) {
@@ -440,6 +522,7 @@ async function publicar() {
     }
 
 
+
     alert("Operação realizada com sucesso!");
     fecharModal();
     await carregarGestaoAdmin();
@@ -449,11 +532,15 @@ async function publicar() {
 }
 
 
+
+
 function iniciar() {
   console.log("Iniciando carregamento das páginas...");
   carregarMural();
   carregarGestaoAdmin();
 }
+
+
 
 
 async function prepararEdicao(id) {
@@ -464,14 +551,17 @@ async function prepararEdicao(id) {
     .single();
 
 
+
   if (error) {
     console.error("Erro ao preparar edição:", error.message);
     return;
   }
 
 
+
   if (noticia) {
     idEmEdicao = id;
+
 
 
     document.getElementById("titulo").value = noticia.titulo;
@@ -480,12 +570,31 @@ async function prepararEdicao(id) {
     document.getElementById("conteudo-completo").value =
       noticia.conteudo_completo || "";
     document.getElementById("imagem-url").value = noticia.imagem_url || "";
+
+
+    // Mostra preview se já houver imagem salva
+    const previewArea = document.getElementById("preview-area");
+    const previewImg = document.getElementById("preview-img");
+    const uploadLabel = document.getElementById("upload-label");
+    if (noticia.imagem_url) {
+      if (previewArea) previewArea.style.display = "block";
+      if (previewImg) previewImg.src = noticia.imagem_url;
+      if (uploadLabel) uploadLabel.textContent = "✅ Imagem atual";
+    } else {
+      if (previewArea) previewArea.style.display = "none";
+      if (previewImg) previewImg.src = "";
+      if (uploadLabel) uploadLabel.textContent = "📁 Clique para selecionar uma imagem";
+    }
+
+
     document.getElementById("data-expiracao").value =
       noticia.data_expiracao || "";
 
 
+
     document.querySelector(".modal-header h2").innerText = "Editar Notificação";
     document.querySelector(".btn-postar").innerText = "Salvar Alterações";
+
 
 
     document.getElementById("modal").style.display = "flex";
@@ -493,20 +602,29 @@ async function prepararEdicao(id) {
 }
 
 
+
+
 function fecharModal() {
   idEmEdicao = null;
+
+
+  // Limpa preview de imagem
+  removerImagem();
 
 
   const modal = document.getElementById("modal");
   if (modal) modal.style.display = "none";
 
 
+
   const tituloModal = document.querySelector(".modal-header h2");
   const botaoPostar = document.querySelector(".btn-postar");
 
 
+
   if (tituloModal) tituloModal.innerText = "Nova Notificação";
   if (botaoPostar) botaoPostar.innerText = "Publicar Notificação";
+
 
 
   const campos = document.querySelectorAll(
@@ -514,13 +632,17 @@ function fecharModal() {
   );
 
 
+
   campos.forEach((campo) => {
     campo.value = "";
   });
 
 
+
   console.log("Modal resetado: pronto para novo cadastro.");
 }
+
+
 
 
 async function cadastrarFuncionario() {
@@ -531,11 +653,13 @@ async function cadastrarFuncionario() {
   const msg = document.getElementById("msg-cadastro");
 
 
+
   if (!nome || !email || !password) {
     msg.innerText = "Preencha todos os campos!";
     msg.style.color = "red";
     return;
   }
+
 
 
   const { data: authData, error: authError } = await _supabase.auth.signUp({
@@ -545,10 +669,12 @@ async function cadastrarFuncionario() {
   });
 
 
+
   if (authError) {
     msg.innerText = "Erro no cadastro: " + authError.message;
     return;
   }
+
 
 
   const { error: perfilError } = await _supabase
@@ -564,6 +690,7 @@ async function cadastrarFuncionario() {
     ]);
 
 
+
   if (perfilError) {
     msg.innerText =
       "Usuário criado, mas erro ao gerar perfil: " + perfilError.message;
@@ -572,12 +699,15 @@ async function cadastrarFuncionario() {
     msg.style.color = "green";
 
 
+
     document
       .querySelectorAll("#novo-nome, #novo-email, #nova-senha")
       .forEach((i) => (i.value = ""));
 
 
+
     carregarUsuarios();
+
 
 
     await registrarLog(
@@ -590,14 +720,18 @@ async function cadastrarFuncionario() {
 }
 
 
+
+
 async function exibirNomeHeader() {
   const nomeHeader = document.getElementById("nome-usuario-header");
   if (!nomeHeader) return;
 
 
+
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
 
   if (user && user.user_metadata) {
@@ -609,10 +743,13 @@ async function exibirNomeHeader() {
 }
 
 
+
+
 async function verificarPermissoes() {
   const sessaoCadastro = document.getElementById("sessao-cadastro");
   const sessaoLogs = document.getElementById("sessao-logs");
   const sessaoUsuarios = document.getElementById("sessao-usuarios");
+
 
 
   const {
@@ -620,14 +757,17 @@ async function verificarPermissoes() {
   } = await _supabase.auth.getUser();
 
 
+
   if (user && user.user_metadata) {
     const cargo = user.user_metadata.cargo;
+
 
 
     if (cargo === "Direção") {
       if (sessaoCadastro) sessaoCadastro.style.display = "block";
       if (sessaoLogs) sessaoLogs.style.display = "block";
       if (sessaoUsuarios) sessaoUsuarios.style.display = "block";
+
 
 
       if (sessaoLogs) await carregarLogs(1);
@@ -637,12 +777,16 @@ async function verificarPermissoes() {
 }
 
 
+
+
 function alternarFiltrosLogs() {
   const painel = document.getElementById("painel-filtros-logs");
   const botao = document.getElementById("btn-filtrar-logs");
 
 
+
   if (!painel || !botao) return;
+
 
 
   const aberto = painel.style.display === "block";
@@ -651,10 +795,13 @@ function alternarFiltrosLogs() {
 }
 
 
+
+
 function aplicarFiltroLogs() {
   const filtroAcao = document.getElementById("filtro-acao-logs");
   const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
   const filtroDataFim = document.getElementById("filtro-data-fim-logs");
+
 
 
   filtrosLogs.acao = filtroAcao ? filtroAcao.value : "";
@@ -662,8 +809,11 @@ function aplicarFiltroLogs() {
   filtrosLogs.dataFim = filtroDataFim ? filtroDataFim.value : "";
 
 
+
   carregarLogs(1);
 }
+
+
 
 
 function removerFiltroLogs() {
@@ -674,9 +824,11 @@ function removerFiltroLogs() {
   };
 
 
+
   const filtroAcao = document.getElementById("filtro-acao-logs");
   const filtroDataInicio = document.getElementById("filtro-data-inicio-logs");
   const filtroDataFim = document.getElementById("filtro-data-fim-logs");
+
 
 
   if (filtroAcao) filtroAcao.value = "";
@@ -684,8 +836,11 @@ function removerFiltroLogs() {
   if (filtroDataFim) filtroDataFim.value = "";
 
 
+
   carregarLogs(1);
 }
+
+
 
 
 async function carregarLogs(pagina = 1) {
@@ -696,14 +851,18 @@ async function carregarLogs(pagina = 1) {
   const btnProxima = document.getElementById("btn-proxima-pagina");
 
 
+
   if (!corpoLogs) return;
+
 
 
   paginaLogsAtual = pagina;
 
 
+
   const inicio = (pagina - 1) * logsPorPagina;
   const fim = inicio + logsPorPagina - 1;
+
 
 
   let query = _supabase
@@ -712,9 +871,11 @@ async function carregarLogs(pagina = 1) {
     .order("criado_em", { ascending: false });
 
 
+
   if (filtrosLogs.acao) {
     query = query.eq("acao", filtrosLogs.acao);
   }
+
 
 
   if (filtrosLogs.dataInicio) {
@@ -722,12 +883,15 @@ async function carregarLogs(pagina = 1) {
   }
 
 
+
   if (filtrosLogs.dataFim) {
     query = query.lte("criado_em", `${filtrosLogs.dataFim}T23:59:59`);
   }
 
 
+
   const { data: logs, error, count } = await query.range(inicio, fim);
+
 
 
   if (error) {
@@ -738,7 +902,9 @@ async function carregarLogs(pagina = 1) {
   }
 
 
+
   totalPaginasLogs = Math.max(1, Math.ceil((count || 0) / logsPorPagina));
+
 
 
   if (!logs || logs.length === 0) {
@@ -746,6 +912,7 @@ async function carregarLogs(pagina = 1) {
     if (paginacao) paginacao.style.display = "none";
     return;
   }
+
 
 
   corpoLogs.innerHTML = logs
@@ -763,9 +930,11 @@ async function carregarLogs(pagina = 1) {
     .join("");
 
 
+
   if (paginacao) {
     paginacao.style.display = totalPaginasLogs > 1 ? "flex" : "none";
   }
+
 
 
   if (infoPagina) {
@@ -773,9 +942,11 @@ async function carregarLogs(pagina = 1) {
   }
 
 
+
   if (btnAnterior) {
     btnAnterior.disabled = paginaLogsAtual === 1;
   }
+
 
 
   if (btnProxima) {
@@ -784,16 +955,21 @@ async function carregarLogs(pagina = 1) {
 }
 
 
+
+
 function irParaPaginaLogs(pagina) {
   if (pagina < 1 || pagina > totalPaginasLogs) return;
   carregarLogs(pagina);
 }
 
 
+
+
 async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
+
 
 
   if (user) {
@@ -808,7 +984,9 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
     };
 
 
+
     const { error } = await _supabase.from("logs_atividades").insert([logData]);
+
 
 
     if (error) {
@@ -818,9 +996,12 @@ async function registrarLog(acao, itemTitulo, noticiaId = null, detalhes = "") {
 }
 
 
+
+
 async function carregarUsuarios() {
   const corpo = document.getElementById("tabela-usuarios");
   if (!corpo) return;
+
 
 
   const { data: usuarios, error } = await _supabase
@@ -829,10 +1010,12 @@ async function carregarUsuarios() {
     .order("nome_completo");
 
 
+
   if (error) {
     console.error("Erro ao carregar usuários:", error.message);
     return;
   }
+
 
 
   if (usuarios) {
@@ -856,6 +1039,8 @@ async function carregarUsuarios() {
 }
 
 
+
+
 async function arquivarUsuario(id, nome) {
   if (confirm(`Deseja desativar o acesso de ${nome}?`)) {
     const { error } = await _supabase
@@ -864,9 +1049,11 @@ async function arquivarUsuario(id, nome) {
       .eq("id", id);
 
 
+
     if (!error) {
       await registrarLog("Arquivou Usuário", nome, id);
       alert("Usuário arquivado!");
+
 
 
       carregarUsuarios();
@@ -874,6 +1061,8 @@ async function arquivarUsuario(id, nome) {
     }
   }
 }
+
+
 
 
 async function prepararEdicaoUsuario(id) {
@@ -884,16 +1073,19 @@ async function prepararEdicaoUsuario(id) {
     .single();
 
 
+
   if (error) {
     console.error("Erro ao buscar usuário:", error.message);
     return;
   }
 
 
+
   if (usuario) {
     document.getElementById("edit-user-id").value = usuario.id;
     document.getElementById("edit-user-nome").value = usuario.nome_completo;
     document.getElementById("edit-user-cargo").value = usuario.cargo;
+
 
 
     const modal = document.getElementById("modal-usuario");
@@ -906,10 +1098,13 @@ async function prepararEdicaoUsuario(id) {
 }
 
 
+
+
 async function salvarEdicaoUsuario() {
   const id = document.getElementById("edit-user-id").value;
   const novoNome = document.getElementById("edit-user-nome").value;
   const novoCargo = document.getElementById("edit-user-cargo").value;
+
 
 
   const { error } = await _supabase
@@ -919,6 +1114,7 @@ async function salvarEdicaoUsuario() {
       cargo: novoCargo,
     })
     .eq("id", id);
+
 
 
   if (error) {
@@ -932,6 +1128,7 @@ async function salvarEdicaoUsuario() {
     );
 
 
+
     alert("Dados do funcionário atualizados!");
     fecharModalUsuario();
     carregarUsuarios();
@@ -940,8 +1137,11 @@ async function salvarEdicaoUsuario() {
 }
 
 
+
+
 function transformarLinks(texto) {
   if (!texto) return "";
+
 
 
   const regexUrl = /(https?:\/\/[^\s]+)/g;
@@ -951,10 +1151,14 @@ function transformarLinks(texto) {
 }
 
 
+
+
 function fecharModalUsuario() {
   const modal = document.getElementById("modal-usuario");
   if (modal) modal.style.display = "none";
 }
+
+
 
 
 document.addEventListener("keydown", (event) => {
@@ -962,7 +1166,9 @@ document.addEventListener("keydown", (event) => {
   if (!modalLeitura) return;
 
 
+
   const modalAberto = modalLeitura.style.display === "flex";
+
 
 
   if (event.key === "Escape" && modalAberto) {
@@ -971,6 +1177,101 @@ document.addEventListener("keydown", (event) => {
 });
 
 
+
+
 window.onload = () => {
   init();
 };
+
+
+
+
+// ─── UPLOAD E COMPRESSÃO DE IMAGEM ──────────────────────────────────────────
+
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    comprimirImagem(e.target.result, function (base64Comprimida) {
+      document.getElementById("imagem-url").value = base64Comprimida;
+
+
+
+      const previewArea = document.getElementById("preview-area");
+      const previewImg = document.getElementById("preview-img");
+      const uploadLabel = document.getElementById("upload-label");
+
+
+
+      if (previewArea) previewArea.style.display = "block";
+      if (previewImg) previewImg.src = base64Comprimida;
+      if (uploadLabel) uploadLabel.textContent = "✅ " + file.name;
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+
+function comprimirImagem(base64Original, callback) {
+  const canvas = document.getElementById("canvas-compressor");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+
+
+
+  img.onload = function () {
+    const MAX = 800;
+    let w = img.width;
+    let h = img.height;
+
+
+
+    if (w > MAX || h > MAX) {
+      if (w > h) {
+        h = Math.round((h * MAX) / w);
+        w = MAX;
+      } else {
+        w = Math.round((w * MAX) / h);
+        h = MAX;
+      }
+    }
+
+
+
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+    const resultado = canvas.toDataURL("image/jpeg", 0.6);
+    callback(resultado);
+  };
+
+
+
+  img.src = base64Original;
+}
+
+
+function removerImagem() {
+  document.getElementById("imagem-url").value = "";
+  document.getElementById("imagem-file").value = "";
+
+
+
+  const previewArea = document.getElementById("preview-area");
+  const previewImg = document.getElementById("preview-img");
+  const uploadLabel = document.getElementById("upload-label");
+
+
+
+  if (previewArea) previewArea.style.display = "none";
+  if (previewImg) previewImg.src = "";
+  if (uploadLabel) uploadLabel.textContent = "📁 Clique para selecionar uma imagem";
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────

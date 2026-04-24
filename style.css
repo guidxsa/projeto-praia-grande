@@ -1,3 +1,9 @@
+/* ============================================================
+   PROJETO PRAIA GRANDE — STYLESHEET COMPLETO
+   Repositório: guidxsa/projeto-praia-grande
+   ============================================================ */
+
+/* ── Tokens / Variáveis ── */
 :root {
   --bg: #f4f7fb;
   --surface: #ffffff;
@@ -23,6 +29,7 @@
   --transition: 180ms ease;
 }
 
+/* ── Reset ── */
 *,
 *::before,
 *::after {
@@ -85,14 +92,14 @@ textarea {
   outline-offset: 2px;
 }
 
-/* Layout base */
+/* ── Layout base ── */
 .container {
   width: min(var(--container), calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 40px;
 }
 
-/* Header */
+/* ── Header ── */
 .main-header {
   width: 100%;
   padding: 18px 16px;
@@ -141,6 +148,7 @@ textarea {
   flex: 0 0 auto;
 }
 
+/* ── Botões globais ── */
 .btn-acesso,
 .btn-logout,
 .btn-nova,
@@ -179,7 +187,7 @@ textarea {
   transform: translateY(0);
 }
 
-/* Filters */
+/* ── Filtros ── */
 .filters-container {
   display: grid;
   gap: 14px;
@@ -241,7 +249,7 @@ textarea {
   outline: none;
 }
 
-/* News grid */
+/* ── Grid de notícias ── */
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
@@ -283,6 +291,7 @@ textarea {
   max-width: 340px;
 }
 
+/* ── Cards ── */
 .card,
 .card-noticia {
   background: var(--surface);
@@ -294,6 +303,7 @@ textarea {
     transform var(--transition),
     box-shadow var(--transition),
     border-color var(--transition);
+  cursor: pointer;
 }
 
 .card:hover,
@@ -301,11 +311,6 @@ textarea {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
   border-color: rgba(37, 99, 235, 0.18);
-}
-
-.card,
-.card-noticia {
-  cursor: pointer;
 }
 
 .card-img {
@@ -344,7 +349,7 @@ textarea {
   padding: 24px 0;
 }
 
-/* Tags */
+/* ── Tags ── */
 .tag {
   display: inline-flex;
   align-items: center;
@@ -381,7 +386,7 @@ textarea {
   color: var(--warning);
 }
 
-/* Login */
+/* ── Login ── */
 .body-login {
   display: grid;
   place-items: center;
@@ -451,7 +456,7 @@ textarea {
   font-weight: 600;
 }
 
-/* Admin layout */
+/* ── Layout Admin ── */
 .admin-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -502,6 +507,7 @@ textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* ── Tabelas Admin ── */
 .tables-area {
   display: grid;
   gap: 24px;
@@ -556,7 +562,7 @@ textarea {
   color: #9f1239;
 }
 
-/* Forms */
+/* ── Modais ── */
 .modal-overlay,
 .modal {
   position: fixed;
@@ -633,6 +639,7 @@ textarea {
   background: #e9eef8;
 }
 
+/* ── Formulários ── */
 .modal-body label,
 .form-group label {
   display: block;
@@ -716,6 +723,7 @@ textarea {
   text-align: center;
 }
 
+/* ── Módulo de Cadastro ── */
 .registration-module {
   margin-top: 24px;
 }
@@ -748,6 +756,7 @@ textarea {
   font-size: 1.2rem;
 }
 
+/* ── Utilitários de texto ── */
 .text-green {
   color: var(--success);
   font-weight: 700;
@@ -758,6 +767,7 @@ textarea {
   font-weight: 700;
 }
 
+/* ── Shell de leitura de notícia ── */
 .modal-news-shell {
   position: relative;
   display: flex;
@@ -850,6 +860,7 @@ textarea {
   word-break: break-word;
 }
 
+/* ── Badges de log ── */
 .badge-criou,
 .badge-editou,
 .badge-arquivou {
@@ -881,6 +892,7 @@ textarea {
   padding: 12px 8px;
 }
 
+/* ── Botões de ação nas tabelas ── */
 .btn-edit,
 .btn-delete {
   padding: 9px 12px;
@@ -898,6 +910,7 @@ textarea {
   border-color: rgba(185, 28, 28, 0.18);
 }
 
+/* ── Performance: content-visibility ── */
 .table-container,
 .login-container,
 .stats-sidebar,
@@ -909,145 +922,9 @@ textarea {
   content-visibility: auto;
 }
 
-@media (max-width: 960px) {
-  .main-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-acesso {
-    width: 100%;
-  }
-
-  .admin-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-sidebar {
-    position: static;
-  }
-
-  .row,
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-table {
-    min-width: 640px;
-  }
-
-  .news-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  }
-
-  #mural-noticias.news-grid.grid-2-items {
-    grid-template-columns: 1fr;
-  }
-
-  #mural-noticias.news-grid.grid-2-items > .card-noticia {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 640px) {
-  .container {
-    width: min(100% - 20px, var(--container));
-    padding-top: 18px;
-    padding-bottom: 28px;
-  }
-
-  .filters-container {
-    padding: 14px;
-  }
-
-  .category-tabs {
-    gap: 8px;
-  }
-
-  .tab {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-
-  .news-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .card-img {
-    height: 180px;
-  }
-
-  .login-container {
-    padding: 26px 20px;
-    border-radius: 20px;
-  }
-
-  .modal-form,
-  .modal-content {
-    padding: 18px;
-    border-radius: 18px;
-  }
-
-  .modal-content-full {
-    border-radius: 18px;
-  }
-
-  .modal-news-shell {
-    padding: 20px 12px;
-  }
-
-  .modal-news-topbar {
-    margin: -20px -12px 0;
-    padding: 10px 10px 0 10px;
-  }
-
-  .close-btn {
-    width: 44px;
-    height: 44px;
-    font-size: 1.35rem;
-  }
-
-  #conteudo-noticia-foco {
-    padding-top: 6px;
-  }
-
-  .modal-footer,
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .btn-postar,
-  .btn-cancelar,
-  .btn-create-user {
-    width: 100%;
-  }
-
-  .admin-table td:last-child {
-    flex-direction: column;
-  }
-
-  #mural-noticias.news-grid.grid-1-item,
-  #mural-noticias.news-grid.grid-2-items {
-    grid-template-columns: 1fr;
-  }
-
-  #mural-noticias.news-grid.grid-1-item > .card-noticia,
-  #mural-noticias.news-grid.grid-2-items > .card-noticia {
-    max-width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* ===== Navegação administrativa multipágina ===== */
+/* ============================================================
+   NAVEGAÇÃO ADMINISTRATIVA MULTIPÁGINA
+   ============================================================ */
 .admin-header-shell {
   display: block;
   padding: 18px 16px 14px;
@@ -1151,83 +1028,7 @@ textarea {
   margin-top: 40px;
 }
 
-@media (max-width: 960px) {
-  .admin-header-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .user-info {
-    justify-content: space-between;
-  }
-
-  .admin-navbar {
-    gap: 8px;
-  }
-
-  .admin-nav-link {
-    flex: 1 1 100%;
-  }
-
-  .logs-filter-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .admin-header-shell {
-    padding: 16px 12px 12px;
-  }
-
-  .admin-header-top,
-  .admin-navbar {
-    width: min(100%, calc(100% - 8px));
-  }
-
-  .page-identity h1 {
-    font-size: 1.2rem;
-  }
-
-  .user-info {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-logout {
-    width: 100%;
-  }
-
-  .pagination-container {
-    justify-content: center;
-  }
-
-  .pagination-btn {
-    flex: 1 1 140px;
-  }
-
-  .pagination-info {
-    width: 100%;
-    text-align: center;
-  }
-
-  .logs-toolbar {
-    justify-content: stretch;
-  }
-
-  .btn-filter-toggle {
-    width: 100%;
-  }
-
-  .logs-filter-actions {
-    flex-direction: column;
-  }
-
-  .btn-apply-filter,
-  .btn-clear-filter {
-    width: 100%;
-  }
-}
-
+/* ── Paginação ── */
 .pagination-container {
   margin-top: 18px;
   display: flex;
@@ -1266,6 +1067,7 @@ textarea {
   font-weight: 600;
 }
 
+/* ── Filtro de Logs ── */
 .logs-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -1368,4 +1170,404 @@ textarea {
 
 .btn-clear-filter:hover {
   background: #eef2f7;
+}
+
+/* ============================================================
+   MODAL DE LEITURA — REDESIGN EDITORIAL v2
+   Escopo: #modal-leitura e seus filhos diretos.
+   Impacto zero em cards, filtros, admin, login.
+   ============================================================ */
+
+/* Barra de progresso de leitura */
+.read-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  border-radius: 0 3px 3px 0;
+  z-index: 10;
+  transition: width 80ms linear;
+  pointer-events: none;
+}
+
+/* Container principal do modal */
+#modal-leitura .modal-content-full {
+  max-width: 780px;
+  max-height: calc(100dvh - 28px);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Shell de scroll */
+#modal-leitura .modal-news-shell {
+  padding: 0;
+  gap: 0;
+}
+
+/* Botão fechar — flutua sobre a imagem */
+#modal-leitura .close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 8;
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+  background: rgba(8, 51, 92, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+#modal-leitura .close-btn:hover {
+  background: rgba(15, 76, 129, 0.92);
+  transform: translateY(-1px);
+}
+
+/* Topbar legacy oculta */
+#modal-leitura .modal-news-topbar {
+  display: none;
+}
+
+/* ── Hero image ── */
+.noticia-full-hero {
+  position: relative;
+  width: 100%;
+  background: var(--surface-3);
+  overflow: hidden;
+  max-height: 360px;
+  min-height: 200px;
+}
+
+.noticia-full-hero .noticia-full-img {
+  width: 100%;
+  height: 100%;
+  max-height: 360px;
+  min-height: 200px;
+  object-fit: cover;
+  border-radius: 0;
+  margin: 0;
+  display: block;
+}
+
+/* Gradiente de transição sobre a imagem */
+.noticia-full-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 40%,
+    rgba(255, 255, 255, 0.72) 80%,
+    #ffffff 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Corpo editorial ── */
+.noticia-full-body {
+  padding: 0 32px 36px;
+}
+
+.noticia-full-body .tag {
+  margin-bottom: 12px;
+}
+
+.noticia-full-header h2 {
+  margin: 0 0 14px;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+/* Meta: autor, data, categoria */
+.noticia-full-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 0 16px;
+  margin-bottom: 24px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.noticia-full-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.noticia-full-meta-icon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.noticia-full-meta-sep {
+  color: var(--border);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Corpo do texto */
+.noticia-full-text {
+  line-height: 1.85;
+  font-size: 1.05rem;
+  color: #2d3748;
+}
+
+.noticia-full-text p {
+  margin: 0 0 1.2em;
+}
+
+/* ── Fallback: notícia SEM imagem ── */
+.noticia-full-no-img .noticia-full-body {
+  padding-top: 56px;
+}
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+
+/* ── ≤ 960px ── */
+@media (max-width: 960px) {
+  .main-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-acesso {
+    width: 100%;
+  }
+
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-sidebar {
+    position: static;
+  }
+
+  .row,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table {
+    min-width: 640px;
+  }
+
+  .news-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  }
+
+  #mural-noticias.news-grid.grid-2-items {
+    grid-template-columns: 1fr;
+  }
+
+  #mural-noticias.news-grid.grid-2-items > .card-noticia {
+    max-width: 100%;
+  }
+
+  .admin-header-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-info {
+    justify-content: space-between;
+  }
+
+  .admin-navbar {
+    gap: 8px;
+  }
+
+  .admin-nav-link {
+    flex: 1 1 100%;
+  }
+
+  .logs-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── ≤ 640px ── */
+@media (max-width: 640px) {
+  .container {
+    width: min(100% - 20px, var(--container));
+    padding-top: 18px;
+    padding-bottom: 28px;
+  }
+
+  .filters-container {
+    padding: 14px;
+  }
+
+  .category-tabs {
+    gap: 8px;
+  }
+
+  .tab {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-img {
+    height: 180px;
+  }
+
+  .login-container {
+    padding: 26px 20px;
+    border-radius: 20px;
+  }
+
+  .modal-form,
+  .modal-content {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .modal-content-full {
+    border-radius: 18px;
+  }
+
+  .modal-news-shell {
+    padding: 20px 12px;
+  }
+
+  .modal-news-topbar {
+    margin: -20px -12px 0;
+    padding: 10px 10px 0 10px;
+  }
+
+  .close-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+
+  #conteudo-noticia-foco {
+    padding-top: 6px;
+  }
+
+  .modal-footer,
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-postar,
+  .btn-cancelar,
+  .btn-create-user {
+    width: 100%;
+  }
+
+  .admin-table td:last-child {
+    flex-direction: column;
+  }
+
+  #mural-noticias.news-grid.grid-1-item,
+  #mural-noticias.news-grid.grid-2-items {
+    grid-template-columns: 1fr;
+  }
+
+  #mural-noticias.news-grid.grid-1-item > .card-noticia,
+  #mural-noticias.news-grid.grid-2-items > .card-noticia {
+    max-width: 100%;
+  }
+
+  .admin-header-shell {
+    padding: 16px 12px 12px;
+  }
+
+  .admin-header-top,
+  .admin-navbar {
+    width: min(100%, calc(100% - 8px));
+  }
+
+  .page-identity h1 {
+    font-size: 1.2rem;
+  }
+
+  .user-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-logout {
+    width: 100%;
+  }
+
+  .pagination-container {
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    flex: 1 1 140px;
+  }
+
+  .pagination-info {
+    width: 100%;
+    text-align: center;
+  }
+
+  .logs-toolbar {
+    justify-content: stretch;
+  }
+
+  .btn-filter-toggle {
+    width: 100%;
+  }
+
+  .logs-filter-actions {
+    flex-direction: column;
+  }
+
+  .btn-apply-filter,
+  .btn-clear-filter {
+    width: 100%;
+  }
+
+  /* Modal editorial — mobile */
+  #modal-leitura .modal-content-full {
+    max-height: calc(100dvh - 16px);
+    border-radius: 16px;
+  }
+
+  .noticia-full-hero,
+  .noticia-full-hero .noticia-full-img {
+    max-height: 220px;
+    min-height: 160px;
+  }
+
+  .noticia-full-body {
+    padding: 0 18px 28px;
+  }
+
+  .noticia-full-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .noticia-full-text {
+    font-size: 0.98rem;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }

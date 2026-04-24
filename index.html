@@ -37,7 +37,8 @@
             <p class="loading-msg">Carregando notícias do mural...</p>
         </section>
     </main>
-    
+
+    <!-- MODAL DE LEITURA — estrutura ampliada para novo layout editorial -->
     <div
         id="modal-leitura"
         class="modal-overlay"
@@ -47,24 +48,58 @@
         aria-labelledby="titulo-modal-leitura"
     >
         <div class="modal-content-full">
-            <div class="modal-news-shell">
-                <div class="modal-news-topbar">
-                    <button
-                        class="close-btn"
-                        type="button"
-                        onclick="fecharNoticia()"
-                        aria-label="Fechar notícia"
-                    >
-                        ×
-                    </button>
-                </div>
+            <!-- Barra de progresso de leitura -->
+            <div class="read-progress-bar" id="read-progress-bar"></div>
 
-                <div id="conteudo-noticia-foco">
-                </div>
+            <div class="modal-news-shell">
+                <!-- Botão fechar flutuante -->
+                <button
+                    class="close-btn"
+                    type="button"
+                    onclick="fecharNoticia()"
+                    aria-label="Fechar notícia"
+                >
+                    ×
+                </button>
+
+                <div id="conteudo-noticia-foco"></div>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
+
+    <!-- Script da barra de progresso — inline, sem dependências externas -->
+    <script>
+      (function () {
+        var modal = document.getElementById('modal-leitura');
+        var shell = null;
+        var bar   = document.getElementById('read-progress-bar');
+        if (!modal || !bar) return;
+
+        function onScroll() {
+          if (!shell) shell = modal.querySelector('.modal-news-shell');
+          if (!shell) return;
+          var scrolled = shell.scrollTop;
+          var total    = shell.scrollHeight - shell.clientHeight;
+          var pct      = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
+          bar.style.width = pct + '%';
+        }
+
+        // Anexa listener ao shell quando o modal abre
+        var observer = new MutationObserver(function () {
+          var visible = modal.style.display !== 'none';
+          if (visible) {
+            shell = modal.querySelector('.modal-news-shell');
+            if (shell) {
+              shell.removeEventListener('scroll', onScroll);
+              shell.addEventListener('scroll', onScroll, { passive: true });
+              bar.style.width = '0%';
+            }
+          }
+        });
+        observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+      })();
+    </script>
 </body>
 </html>
