@@ -1571,3 +1571,80 @@ textarea {
     animation: none !important;
   }
 }
+
+
+/* ── CARROSSEL DE IMAGENS (modal de leitura) ────────────────────── */
+.carrossel-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 16px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.carrossel-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carrossel-track .noticia-full-img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+  margin: 0;
+}
+
+.carrossel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.carrossel-btn:hover {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.carrossel-prev { left: 8px; }
+.carrossel-next { right: 8px; }
+
+.carrossel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 4px;
+  background: #000;
+}
+
+.carrossel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.carrossel-dot.active {
+  background: #fff;
+  transform: scale(1.25);
+}
+/* ────────────────────────────────────────────────────────────────── */
