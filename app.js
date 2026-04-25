@@ -22,7 +22,11 @@ let filtrosLogs = {
   dataFim: "",
 };
 
-// Carregamento Automático
+// Imagem default para notícias sem foto (SVG leve, ~400 bytes inline)
+const IMAGEM_DEFAULT =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'%3E%3Crect width='800' height='450' fill='%23e8f0fe'/%3E%3Crect x='60' y='80' width='280' height='200' rx='8' fill='%23c5d5f5'/%3E%3Crect x='380' y='80' width='360' height='28' rx='6' fill='%23b0c4ee'/%3E%3Crect x='380' y='124' width='300' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='380' y='152' width='320' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='380' y='180' width='280' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='310' width='680' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='338' width='620' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='366' width='500' height='16' rx='4' fill='%23c5d5f5'/%3E%3Ccircle cx='200' cy='180' r='40' fill='%23a0b8e8'/%3E%3Ctext x='400' y='240' font-family='Arial' font-size='18' fill='%236b8ccc' text-anchor='middle'%3ENot%C3%ADcia%3C%2Ftext%3E%3C%2Fsvg%3E";
+
+// ─── INICIALIZAÇÃO ────────────────────────────────────────────────────────────
 async function init() {
   if (document.getElementById("mural-noticias")) {
     await carregarMural();
@@ -99,10 +103,9 @@ function renderizarMural(lista) {
   mural.innerHTML = lista
     .map((n) => {
       const imagens = parseImagensUrl(n.imagem_url);
-      const capaHtml =
-        imagens.length > 0
-          ? `<img src="${imagens[0]}" class="card-img" alt="Capa">`
-          : "";
+      // Usa IMAGEM_DEFAULT quando não há foto na notícia
+      const srcCapa = imagens.length > 0 ? imagens[0] : IMAGEM_DEFAULT;
+      const capaHtml = `<img src="${srcCapa}" class="card-img" alt="Capa">`;
       return `
         <article class="card-noticia" onclick="abrirNoticiaCompleta('${n.id}')" style="cursor: pointer;">
             ${capaHtml}
@@ -306,10 +309,13 @@ async function abrirNoticiaCompleta(id) {
 
     if (!conteudoFoco || !modalLeitura) return;
 
+    // Usa IMAGEM_DEFAULT consistente com o mural quando não há imagens
+    const imagensParaExibir = imagens.length > 0 ? imagens : [IMAGEM_DEFAULT];
+
     const dotsHtml =
-      imagens.length > 1
+      imagensParaExibir.length > 1
         ? `<div class="carrossel-dots">
-          ${imagens
+          ${imagensParaExibir
           .map(
             (_, i) =>
               `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`
@@ -318,17 +324,14 @@ async function abrirNoticiaCompleta(id) {
         </div>`
         : "";
 
-    const carrosselHtml =
-      imagens.length > 0
-        ? `<div class="carrossel-wrapper" id="carrossel-wrapper">
+    const carrosselHtml = `<div class="carrossel-wrapper" id="carrossel-wrapper">
           <div class="carrossel-track">
-            <button class="carrossel-btn carrossel-prev" id="carrossel-prev" onclick="carrosselAnterior(event)" aria-label="Anterior" style="display:${imagens.length > 1 ? "flex" : "none"}">&#8249;</button>
-            <img src="${imagens[0]}" class="noticia-full-img" id="carrossel-img" alt="Imagem da notícia">
-            <button class="carrossel-btn carrossel-next" id="carrossel-next" onclick="carrosselProximo(event)" aria-label="Próxima" style="display:${imagens.length > 1 ? "flex" : "none"}">&#8250;</button>
+            <button class="carrossel-btn carrossel-prev" id="carrossel-prev" onclick="carrosselAnterior(event)" aria-label="Anterior" style="display:${imagensParaExibir.length > 1 ? "flex" : "none"}">&#8249;</button>
+            <img src="${imagensParaExibir[0]}" class="noticia-full-img" id="carrossel-img" alt="Imagem da notícia" onerror="this.src='${IMAGEM_DEFAULT}'">
+            <button class="carrossel-btn carrossel-next" id="carrossel-next" onclick="carrosselProximo(event)" aria-label="Próxima" style="display:${imagensParaExibir.length > 1 ? "flex" : "none"}">&#8250;</button>
           </div>
           ${dotsHtml}
-        </div>`
-        : "";
+        </div>`;
 
     conteudoFoco.innerHTML = `
       ${carrosselHtml}
@@ -346,7 +349,7 @@ async function abrirNoticiaCompleta(id) {
       </div>
     `;
 
-    carrosselImagens = imagens;
+    carrosselImagens = imagensParaExibir;
     carrosselIndex = 0;
 
     modalLeitura.style.display = "flex";
@@ -403,7 +406,7 @@ async function deletarNoticia(id) {
   }
 }
 
-// LOGIN E LOGOUT
+// ─── LOGIN E LOGOUT ───────────────────────────────────────────────────────────
 async function fazerLogin() {
   const { error } = await _supabase.auth.signInWithPassword({
     email: document.getElementById("email").value,
@@ -950,7 +953,6 @@ function handleImageUpload(event) {
 
   const filesToProcess = files.slice(0, disponiveis);
 
-  // ✅ CORRIGIDO: avisa se o usuário tentou enviar mais do que o limite restante
   if (files.length > disponiveis) {
     alert(
       `Você selecionou ${files.length} imagens, mas só há espaço para ${disponiveis}. Apenas as primeiras ${disponiveis} serão adicionadas.`
@@ -977,7 +979,6 @@ function handleImageUpload(event) {
         }
       });
     };
-    // ✅ CORRIGIDO: trata erro de leitura do arquivo
     reader.onerror = function () {
       console.error("Erro ao ler arquivo:", file.name);
       processados++;
@@ -991,9 +992,8 @@ function handleImageUpload(event) {
   event.target.value = "";
 }
 
-// ✅ CORRIGIDO: canvas criado em memória (não depende de elemento no DOM)
 function comprimirImagem(base64Original, callback) {
-  const canvas = document.createElement("canvas"); // cria em memória
+  const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   const img = new Image();
 
@@ -1019,10 +1019,9 @@ function comprimirImagem(base64Original, callback) {
     callback(resultado);
   };
 
-  // ✅ CORRIGIDO: trata falha no carregamento da imagem
   img.onerror = function () {
     console.error("Erro ao carregar imagem para compressão.");
-    callback(base64Original); // fallback: usa original sem compressão
+    callback(base64Original);
   };
 
   img.src = base64Original;
@@ -1071,7 +1070,6 @@ function removerImagemIndividual(index) {
   renderizarPreviewAdmin();
 }
 
-// ✅ CORRIGIDO: todos os getElementById com null-check
 function removerImagem() {
   imagensEmEdicao = [];
   const inputFile = document.getElementById("imagem-file");
