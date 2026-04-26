@@ -44,10 +44,24 @@ html {
 
 body {
   margin: 0;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.06), transparent 28%),
-    radial-gradient(circle at top right, rgba(15, 76, 129, 0.05), transparent 24%),
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.06),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(15, 76, 129, 0.05),
+      transparent 24%
+    ),
     var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -1025,7 +1039,7 @@ textarea {
 }
 
 .admin-section-gap {
-  margin-top: 40px;
+  margin-top: 32px;
 }
 
 /* ── Paginação ── */
@@ -1255,7 +1269,7 @@ textarea {
 
 /* Gradiente de transição sobre a imagem */
 .noticia-full-hero::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -1572,7 +1586,6 @@ textarea {
   }
 }
 
-
 /* ── CARROSSEL DE IMAGENS (modal de leitura) ────────────────────── */
 .carrossel-wrapper {
   position: relative;
@@ -1623,8 +1636,12 @@ textarea {
   background: rgba(0, 0, 0, 0.72);
 }
 
-.carrossel-prev { left: 8px; }
-.carrossel-next { right: 8px; }
+.carrossel-prev {
+  left: 8px;
+}
+.carrossel-next {
+  right: 8px;
+}
 
 .carrossel-dots {
   display: flex;
@@ -1640,7 +1657,9 @@ textarea {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.35);
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .carrossel-dot.active {
@@ -1648,4 +1667,71 @@ textarea {
   transform: scale(1.25);
 }
 
+/* No final do seu style.css */
+#nav-equipe,
+#nav-auditoria {
+  display: none;
+}
 
+/* Correção específica para a Tabela de Auditoria */
+#tabela-logs td {
+  display: table-cell !important; /* Desativa o flexbox que causa o desalinhamento */
+  vertical-align: middle !important; /* Força o alinhamento ao centro */
+  padding: 16px 12px !important;
+}
+
+/* Garante que o texto de detalhes mantenha o estilo mas fique alinhado */
+.log-detalhes {
+  display: block;
+  line-height: 1.5;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Garante que o badge (Ação) também esteja alinhado */
+#tabela-logs .badge-criou,
+#tabela-logs .badge-editou,
+#tabela-logs .badge-arquivou {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Nova barra horizontal */
+.stats-bar-horizontal {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(219, 227, 238, 0.9);
+  border-radius: var(--radius-lg);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  gap: 20px;
+}
+
+.stats-info-group {
+  display: flex;
+  gap: 32px; /* Espaçamento entre os números */
+  align-items: center;
+}
+
+.stat-item-inline {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-item-inline strong {
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+/* Garante que o botão não estique demais */
+.stats-bar-horizontal .btn-nova {
+  width: auto;
+  min-width: 180px;
+  margin: 0;
+}
