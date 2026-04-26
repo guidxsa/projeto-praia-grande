@@ -1,125 +1,161 @@
 <!doctype html>
 <html lang="pt-br">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Histórico de Auditoria</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <header class="main-header admin-header-shell">
-        <div class="admin-header-top">
-            <div class="page-identity">
-                <p class="page-kicker">Painel Administrativo</p>
-                <h1>Histórico de Auditoria</h1>
-            </div>
-
-            <div class="user-info">
-                <span id="nome-usuario-header">Carregando...</span>
-                <button type="button" onclick="fazerLogout()" class="btn-logout">
-                    Sair
-                </button>
-            </div>
+      <div class="admin-header-top">
+        <div class="page-identity">
+          <p class="page-kicker">Painel Administrativo</p>
+          <h1>Histórico de Auditoria</h1>
         </div>
 
-        <nav class="admin-navbar" aria-label="Navegação administrativa">
-            <a href="admin.html" class="admin-nav-link">Estatísticas / Notificações</a>
-            <a href="equipe.html" class="admin-nav-link">Gestão de Equipe</a>
-            <a href="auditoria.html" class="admin-nav-link active" aria-current="page">
-                Histórico de Auditoria
-            </a>
-        </nav>
+        <div class="user-info">
+          <span id="nome-usuario-header">Carregando...</span>
+          <button type="button" onclick="fazerLogout()" class="btn-logout">
+            Sair
+          </button>
+        </div>
+      </div>
+
+      <nav class="admin-navbar">
+        <a href="admin.html" class="admin-nav-link" id="nav-estatisticas"
+          >Estatísticas / Notificações</a
+        >
+        <a href="equipe.html" class="admin-nav-link" id="nav-equipe"
+          >Gestão de Equipe</a
+        >
+        <a href="auditoria.html" class="admin-nav-link" id="nav-auditoria"
+          >Histórico de Auditoria</a
+        >
+      </nav>
     </header>
 
     <main class="container admin-page-stack">
-        <section id="sessao-logs" class="table-container" style="margin-top: 0; display: none">
-            <div class="module-header">
-                <div class="icon-circle">📋</div>
-                <div>
-                    <h3>Histórico de Auditoria</h3>
-                    <p>Registro completo de todas as ações realizadas no sistema.</p>
-                </div>
+      <section
+        id="sessao-logs"
+        class="table-container"
+        style="margin-top: 0; display: none"
+      >
+        <div class="module-header">
+          <div class="icon-circle">📋</div>
+          <div>
+            <h3>Histórico de Auditoria</h3>
+            <p>Registro completo de todas as ações realizadas no sistema.</p>
+          </div>
+        </div>
+
+        <div class="logs-toolbar">
+          <button
+            id="btn-filtrar-logs"
+            class="btn-filter-toggle"
+            type="button"
+            onclick="alternarFiltrosLogs()"
+            aria-expanded="false"
+            aria-controls="painel-filtros-logs"
+          >
+            Filtrar
+          </button>
+        </div>
+
+        <div
+          id="painel-filtros-logs"
+          class="logs-filter-panel"
+          style="display: none"
+        >
+          <div class="logs-filter-grid">
+            <div class="logs-filter-group">
+              <label for="filtro-acao-logs">Ação</label>
+              <select id="filtro-acao-logs">
+                <option value="">Todas as ações</option>
+                <option value="Criou">Criou</option>
+                <option value="Editou">Editou</option>
+                <option value="Arquivou">Arquivou</option>
+                <option value="Cadastrou Usuário">Cadastrou Usuário</option>
+                <option value="Editou Usuário">Editou Usuário</option>
+                <option value="Arquivou Usuário">Arquivou Usuário</option>
+              </select>
             </div>
 
-            <div class="logs-toolbar">
-                <button id="btn-filtrar-logs" class="btn-filter-toggle" type="button" onclick="alternarFiltrosLogs()"
-                    aria-expanded="false" aria-controls="painel-filtros-logs">
-                    Filtrar
-                </button>
+            <div class="logs-filter-group">
+              <label for="filtro-data-inicio-logs">Data inicial</label>
+              <input type="date" id="filtro-data-inicio-logs" />
             </div>
 
-            <div id="painel-filtros-logs" class="logs-filter-panel" style="display: none">
-                <div class="logs-filter-grid">
-                    <div class="logs-filter-group">
-                        <label for="filtro-acao-logs">Ação</label>
-                        <select id="filtro-acao-logs">
-                            <option value="">Todas as ações</option>
-                            <option value="Criou">Criou</option>
-                            <option value="Editou">Editou</option>
-                            <option value="Arquivou">Arquivou</option>
-                            <option value="Cadastrou Usuário">Cadastrou Usuário</option>
-                            <option value="Editou Usuário">Editou Usuário</option>
-                            <option value="Arquivou Usuário">Arquivou Usuário</option>
-                        </select>
-                    </div>
-
-                    <div class="logs-filter-group">
-                        <label for="filtro-data-inicio-logs">Data inicial</label>
-                        <input type="date" id="filtro-data-inicio-logs" />
-                    </div>
-
-                    <div class="logs-filter-group">
-                        <label for="filtro-data-fim-logs">Data final</label>
-                        <input type="date" id="filtro-data-fim-logs" />
-                    </div>
-                </div>
-
-                <div class="logs-filter-actions">
-                    <button type="button" class="btn-apply-filter" onclick="aplicarFiltroLogs()">
-                        Aplicar filtro
-                    </button>
-
-                    <button type="button" class="btn-clear-filter" onclick="removerFiltroLogs()">
-                        Limpar filtros
-                    </button>
-                </div>
+            <div class="logs-filter-group">
+              <label for="filtro-data-fim-logs">Data final</label>
+              <input type="date" id="filtro-data-fim-logs" />
             </div>
+          </div>
 
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Data/Hora</th>
-                        <th>Usuário</th>
-                        <th>Ação</th>
-                        <th>Notícia</th>
-                        <th>Detalhes</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-logs"></tbody>
-            </table>
+          <div class="logs-filter-actions">
+            <button
+              type="button"
+              class="btn-apply-filter"
+              onclick="aplicarFiltroLogs()"
+            >
+              Aplicar filtro
+            </button>
 
-            <div id="logs-paginacao" class="pagination-container" style="display: none">
-                <button id="btn-pagina-anterior" class="pagination-btn" type="button"
-                    onclick="irParaPaginaLogs(paginaLogsAtual - 1)">
-                    ← Anterior
-                </button>
+            <button
+              type="button"
+              class="btn-clear-filter"
+              onclick="removerFiltroLogs()"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        </div>
 
-                <span id="pagina-logs-info" class="pagination-info">
-                    Página 1 de 1
-                </span>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Notícia</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-logs"></tbody>
+        </table>
 
-                <button id="btn-proxima-pagina" class="pagination-btn" type="button"
-                    onclick="irParaPaginaLogs(paginaLogsAtual + 1)">
-                    Próxima →
-                </button>
-            </div>
-        </section>
+        <div
+          id="logs-paginacao"
+          class="pagination-container"
+          style="display: none"
+        >
+          <button
+            id="btn-pagina-anterior"
+            class="pagination-btn"
+            type="button"
+            onclick="irParaPaginaLogs(paginaLogsAtual - 1)"
+          >
+            ← Anterior
+          </button>
+
+          <span id="pagina-logs-info" class="pagination-info">
+            Página 1 de 1
+          </span>
+
+          <button
+            id="btn-proxima-pagina"
+            class="pagination-btn"
+            type="button"
+            onclick="irParaPaginaLogs(paginaLogsAtual + 1)"
+          >
+            Próxima →
+          </button>
+        </div>
+      </section>
     </main>
 
     <script src="app.js"></script>
-</body>
-
+  </body>
 </html>

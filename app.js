@@ -28,6 +28,22 @@ const IMAGEM_DEFAULT =
 
 // ─── INICIALIZAÇÃO ────────────────────────────────────────────────────────────
 async function init() {
+  // 1. Checa se o usuário está logado
+  const {
+    data: { session },
+  } = await _supabase.auth.getSession();
+
+  // 2. Se estiver em uma página admin sem estar logado, expulsa para o index
+  const paginasPrivadas = ["admin.html", "equipe.html", "auditoria.html"];
+  const paginaAtual = window.location.pathname.split("/").pop();
+
+  if (!session && paginasPrivadas.includes(paginaAtual)) {
+    window.location.href = "index.html";
+    return; // Para a execução aqui
+  }
+
+  destacarLinkAtivo();
+
   if (document.getElementById("mural-noticias")) {
     await carregarMural();
   }
@@ -86,7 +102,7 @@ function parseImagensUrl(imagem_url) {
   try {
     const parsed = JSON.parse(imagem_url);
     if (Array.isArray(parsed)) return parsed.filter(Boolean);
-  } catch (_) { }
+  } catch (_) {}
   return [imagem_url];
 }
 
@@ -94,25 +110,21 @@ function renderizarMural(lista) {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
-  if (!lista || lista.length === 0) {
-    mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
-    ajustarLayoutMural();
-    return;
-  }
-
   mural.innerHTML = lista
     .map((n) => {
       const imagens = parseImagensUrl(n.imagem_url);
-      // Usa IMAGEM_DEFAULT quando não há foto na notícia
       const srcCapa = imagens.length > 0 ? imagens[0] : IMAGEM_DEFAULT;
-      const capaHtml = `<img src="${srcCapa}" class="card-img" alt="Capa">`;
+
+      // PROTEÇÃO AQUI: Limpamos a descrição curta antes de exibir
+      const descricaoSegura = sanitizar(n.descricao_breve);
+
       return `
         <article class="card-noticia" onclick="abrirNoticiaCompleta('${n.id}')" style="cursor: pointer;">
-            ${capaHtml}
+            <img src="${srcCapa}" class="card-img" alt="Capa">
             <div class="card-content">
                 <span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span>
                 <h3 class="card-title">${n.titulo}</h3>
-                <p class="card-summary">${n.descricao_breve || "Clique para ler mais..."}</p>
+                <p class="card-summary">${descricaoSegura || "Clique para ler mais..."}</p>
                 <div class="card-footer">
                     <small>Postado por: <strong>${n.nome_autor}</strong></small>
                 </div>
@@ -121,12 +133,12 @@ function renderizarMural(lista) {
       `;
     })
     .join("");
-
-  ajustarLayoutMural();
 }
 
 function filtrar(cat, elemento) {
-  document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+  document
+    .querySelectorAll(".tab")
+    .forEach((t) => t.classList.remove("active"));
 
   if (elemento) {
     elemento.classList.add("active");
@@ -149,7 +161,7 @@ function buscar() {
   const filtradas = todasNoticias.filter(
     (n) =>
       (n.titulo || "").toLowerCase().includes(termo) ||
-      (n.descricao_breve || "").toLowerCase().includes(termo)
+      (n.descricao_breve || "").toLowerCase().includes(termo),
   );
 
   renderizarMural(filtradas);
@@ -316,11 +328,11 @@ async function abrirNoticiaCompleta(id) {
       imagensParaExibir.length > 1
         ? `<div class="carrossel-dots">
           ${imagensParaExibir
-          .map(
-            (_, i) =>
-              `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`
-          )
-          .join("")}
+            .map(
+              (_, i) =>
+                `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`,
+            )
+            .join("")}
         </div>`
         : "";
 
@@ -341,8 +353,8 @@ async function abrirNoticiaCompleta(id) {
       </div>
       <div class="noticia-full-meta">
         Postado por: ${n.nome_autor} | Data: ${new Date(
-      n.criado_em
-    ).toLocaleDateString()}
+          n.criado_em,
+        ).toLocaleDateString()}
       </div>
       <div class="noticia-full-text">
         ${textoComLinks}
@@ -392,7 +404,12 @@ async function deletarNoticia(id) {
 
     if (errArq) return alert("Erro no arquivo");
 
-    await registrarLog("Arquivou", noticia.titulo, id, "Movido para o histórico");
+    await registrarLog(
+      "Arquivou",
+      noticia.titulo,
+      id,
+      "Movido para o histórico",
+    );
 
     const { error: errDel } = await _supabase
       .from("notificacoes")
@@ -429,7 +446,6 @@ async function publicar() {
   const {
     data: { user },
   } = await _supabase.auth.getUser();
-
   const imagemUrlFinal =
     imagensEmEdicao.length > 0 ? JSON.stringify(imagensEmEdicao) : null;
 
@@ -454,12 +470,20 @@ async function publicar() {
 
       if (error) throw error;
 
-      if (data.length > 0) {
-        await registrarLog("Editou", payload.titulo, idEmEdicao, "Alteração de dados");
+      if (data && data.length > 0) {
+        await registrarLog(
+          "Editou",
+          payload.titulo,
+          idEmEdicao,
+          "Alteração de dados",
+        );
+        alert("Edição salva com sucesso!"); // Sucesso na edição
+      } else {
+        alert("Erro: Você não tem permissão para editar esta notícia!");
+        return; // IMPORTANTE: Para a execução aqui e não mostra o alerta final
       }
     } else {
       payload.autor_id = user.id;
-
       const { data, error } = await _supabase
         .from("notificacoes")
         .insert([payload])
@@ -467,12 +491,18 @@ async function publicar() {
 
       if (error) throw error;
 
-      if (data) {
-        await registrarLog("Criou", payload.titulo, data[0].id, "Nova postagem");
+      if (data && data.length > 0) {
+        await registrarLog(
+          "Criou",
+          payload.titulo,
+          data[0].id,
+          "Nova postagem",
+        );
+        alert("Publicado com sucesso!"); // Sucesso na criação
       }
     }
 
-    alert("Operação realizada com sucesso!");
+    // Ações de fechamento que só ocorrem em caso de SUCESSO REAL
     fecharModal();
     await carregarGestaoAdmin();
   } catch (err) {
@@ -540,7 +570,7 @@ function fecharModal() {
   if (botaoPostar) botaoPostar.innerText = "Publicar Notificação";
 
   const campos = document.querySelectorAll(
-    "#modal input, #modal textarea, #modal select"
+    "#modal input, #modal textarea, #modal select",
   );
   campos.forEach((campo) => {
     campo.value = "";
@@ -602,7 +632,7 @@ async function cadastrarFuncionario() {
       "Cadastrou Usuário",
       nome,
       authData.user.id,
-      `Novo acesso criado para ${cargo}`
+      `Novo acesso criado para ${cargo}`,
     );
   }
 }
@@ -624,6 +654,9 @@ async function exibirNomeHeader() {
 }
 
 async function verificarPermissoes() {
+  // Captura as abas da navegação e as sessões de conteúdo
+  const navEquipe = document.getElementById("nav-equipe");
+  const navAuditoria = document.getElementById("nav-auditoria");
   const sessaoCadastro = document.getElementById("sessao-cadastro");
   const sessaoLogs = document.getElementById("sessao-logs");
   const sessaoUsuarios = document.getElementById("sessao-usuarios");
@@ -636,10 +669,16 @@ async function verificarPermissoes() {
     const cargo = user.user_metadata.cargo;
 
     if (cargo === "Direção") {
+      // 1. Mostra os links na barra de navegação
+      if (navEquipe) navEquipe.style.display = "inline-flex";
+      if (navAuditoria) navAuditoria.style.display = "inline-flex";
+
+      // 2. Mostra os blocos de conteúdo das páginas
       if (sessaoCadastro) sessaoCadastro.style.display = "block";
       if (sessaoLogs) sessaoLogs.style.display = "block";
       if (sessaoUsuarios) sessaoUsuarios.style.display = "block";
 
+      // 3. Carrega os dados
       if (sessaoLogs) await carregarLogs(1);
       if (sessaoUsuarios) await carregarUsuarios();
     }
@@ -738,14 +777,14 @@ async function carregarLogs(pagina = 1) {
   corpoLogs.innerHTML = logs
     .map(
       (l) => `
-        <tr>
-          <td>${new Date(l.criado_em).toLocaleString()}</td>
-          <td><strong>${l.usuario_nome}</strong><br><small>${l.usuario_cargo}</small></td>
-          <td><span class="badge-${l.acao.toLowerCase()}">${l.acao}</span></td>
-          <td>${l.item_titulo || "---"}</td>
-          <td style="color: #666; font-size: 0.85rem;">${l.detalhes || "---"}</td>
-        </tr>
-      `
+      <tr>
+        <td>${new Date(l.criado_em).toLocaleString()}</td>
+        <td><strong>${l.usuario_nome}</strong><br><small>${l.usuario_cargo}</small></td>
+        <td><span class="badge-${l.acao.toLowerCase()}">${l.acao}</span></td>
+        <td>${l.item_titulo || "---"}</td>
+        <td class="log-detalhes">${l.detalhes || "---"}</td> 
+      </tr>
+    `,
     )
     .join("");
 
@@ -823,7 +862,7 @@ async function carregarUsuarios() {
               <button class="btn-delete" onclick="arquivarUsuario('${u.id}', '${u.nome_completo}')">🗄️ Arquivar</button>
             </td>
           </tr>
-        `
+        `,
       )
       .join("");
   }
@@ -892,7 +931,7 @@ async function salvarEdicaoUsuario() {
       "Editou Usuário",
       novoNome,
       id,
-      `Alterou cargo para ${novoCargo}`
+      `Alterou cargo para ${novoCargo}`,
     );
 
     alert("Dados do funcionário atualizados!");
@@ -905,8 +944,18 @@ async function salvarEdicaoUsuario() {
 function transformarLinks(texto) {
   if (!texto) return "";
 
+  // 1. "Sanitização" básica: Transforma os caracteres de tags HTML em texto comum
+  // Isso impede que o <script> seja lido como código pelo navegador
+  const textoSeguro = texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+  // 2. Agora identifica as URLs no texto já limpo
   const regexUrl = /(https?:\/\/[^\s]+)/g;
-  return texto.replace(regexUrl, (url) => {
+  return textoSeguro.replace(regexUrl, (url) => {
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="link-mural">${url}</a>`;
   });
 }
@@ -955,7 +1004,7 @@ function handleImageUpload(event) {
 
   if (files.length > disponiveis) {
     alert(
-      `Você selecionou ${files.length} imagens, mas só há espaço para ${disponiveis}. Apenas as primeiras ${disponiveis} serão adicionadas.`
+      `Você selecionou ${files.length} imagens, mas só há espaço para ${disponiveis}. Apenas as primeiras ${disponiveis} serão adicionadas.`,
     );
   }
 
@@ -971,9 +1020,7 @@ function handleImageUpload(event) {
           const hiddenField = document.getElementById("imagem-url");
           if (hiddenField) {
             hiddenField.value =
-              imagensEmEdicao.length > 0
-                ? JSON.stringify(imagensEmEdicao)
-                : "";
+              imagensEmEdicao.length > 0 ? JSON.stringify(imagensEmEdicao) : "";
           }
           renderizarPreviewAdmin();
         }
@@ -1055,7 +1102,7 @@ function renderizarPreviewAdmin() {
         <button type="button" onclick="removerImagemIndividual(${i})"
           style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;line-height:20px;text-align:center;">✕</button>
       </div>
-    `
+    `,
     )
     .join("");
 }
@@ -1077,4 +1124,35 @@ function removerImagem() {
   const hiddenField = document.getElementById("imagem-url");
   if (hiddenField) hiddenField.value = "";
   renderizarPreviewAdmin();
+}
+
+// Função para neutralizar qualquer tag HTML
+function sanitizar(texto) {
+  if (!texto) return "";
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function destacarLinkAtivo() {
+  // 1. Pega todos os links da barra de navegação
+  const links = document.querySelectorAll(".admin-nav-link");
+
+  // 2. Pega o nome do arquivo atual (ex: admin.html ou equipe.html)
+  const paginaAtual = window.location.pathname.split("/").pop();
+
+  links.forEach((link) => {
+    // Remove a classe active de todos para começar do zero
+    link.classList.remove("active");
+    link.removeAttribute("aria-current");
+
+    // 3. Se o destino do link (href) for igual à página atual, destaca ele!
+    if (link.getAttribute("href") === paginaAtual) {
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
 }
