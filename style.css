@@ -1735,3 +1735,116 @@ textarea {
   min-width: 180px;
   margin: 0;
 }
+
+
+
+
+
+
+
+.footer-escola {
+  background: linear-gradient(180deg, #f9f8f5 0%, #ece8e1 100%);
+  border-top: 1px solid rgba(40, 37, 29, 0.12);
+  padding: 56px 20px;
+}
+
+.footer-escola__container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-escola__cabecalho {
+  margin-bottom: 28px;
+}
+
+.footer-escola__tag {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(1, 105, 111, 0.12);
+  color: #01696f;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer-escola__titulo {
+  margin: 0 0 10px;
+  font-size: 28px;
+  line-height: 1.1;
+  color: #28251d;
+}
+
+.footer-escola__descricao {
+  margin: 0;
+  max-width: 68ch;
+  color: #6f6b63;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.footer-escola__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.footer-escola__card {
+  padding: 24px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(40, 37, 29, 0.1);
+  box-shadow: 0 12px 30px rgba(40, 37, 29, 0.08);
+}
+
+.footer-escola__card h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #28251d;
+}
+
+.footer-escola__card p {
+  margin: 0 0 8px;
+  color: #6f6b63;
+  line-height: 1.6;
+}
+
+.footer-escola__card a {
+  color: #01696f;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-escola__card a:hover {
+  text-decoration: underline;
+}
+
+.footer-escola__botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #01696f;
+  color: #f9f8f4 !important;
+  box-shadow: 0 10px 18px rgba(1, 105, 111, 0.18);
+}
+
+.footer-escola__botao:hover {
+  background: #0c4e54;
+  text-decoration: none !important;
+}
+
+@media (max-width: 900px) {
+  .footer-escola__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-escola__titulo {
+    font-size: 24px;
+  }
+}
