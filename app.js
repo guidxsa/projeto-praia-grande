@@ -1156,3 +1156,29 @@ function destacarLinkAtivo() {
     }
   });
 }
+
+
+// ─── KEEP-ALIVE SUPABASE ─────────────────────────────────────────────────────
+// Previne que o projeto Supabase "durma" por inatividade.
+// Executa um SELECT silencioso a cada 5 dias (bem antes do limite de 7 dias).
+// Não altera dados, não interfere em nenhuma outra função.
+
+async function keepAliveSupabase() {
+  try {
+    await _supabase
+      .from("notificacoes")
+      .select("id")
+      .limit(1);
+    // Sem log no console em produção para não poluir
+  } catch (_) {
+    // Falha silenciosa — o keep-alive é best-effort
+  }
+}
+
+// 5 dias em milissegundos = 5 * 24 * 60 * 60 * 1000
+const KEEP_ALIVE_INTERVALO_MS = 5 * 24 * 60 * 60 * 1000;
+
+// Inicia imediatamente ao carregar a página e repete a cada 5 dias
+keepAliveSupabase();
+setInterval(keepAliveSupabase, KEEP_ALIVE_INTERVALO_MS);
+// ─────────────────────────────────────────────────────────────────────────────

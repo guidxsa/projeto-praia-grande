@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -s \
+            -X GET \
+            "https://nnnniaoribyqkcxtbpvr.supabase.co/rest/v1/notificacoes?select=id&limit=1" \
+            -H "apikey: sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz" \
+            -H "Authorization: Bearer sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz" \
+            -H "Accept: application/json" \
+            -o /dev/null \
+            --fail \
+            --silent \
+            --show-error
+          echo "Keep-alive executado com sucesso."
