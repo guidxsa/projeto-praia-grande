@@ -59,6 +59,30 @@ async function init() {
   await verificarPermissoes();
 }
 
+// --- LISTENERS DE EVENTOS ESTÁTICOS ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Listener do botão de login
+  const btnEntrar = document.getElementById("btn-entrar");
+  if (btnEntrar) {
+    btnEntrar.addEventListener("click", fazerLogin);
+  }
+
+  // Listener do input de busca
+  const inputBusca = document.getElementById("input-busca");
+  if (inputBusca) {
+    inputBusca.addEventListener("keyup", buscar);
+  }
+
+  // Listeners das abas de filtro
+  const abas = document.querySelectorAll(".category-tabs .tab");
+  abas.forEach((aba) => {
+    aba.addEventListener("click", function () {
+      const categoria = this.getAttribute("data-categoria");
+      filtrar(categoria, this);
+    });
+  });
+});
+
 async function carregarMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
@@ -114,12 +138,11 @@ function renderizarMural(lista) {
     .map((n) => {
       const imagens = parseImagensUrl(n.imagem_url);
       const srcCapa = imagens.length > 0 ? imagens[0] : IMAGEM_DEFAULT;
-
-      // PROTEÇÃO AQUI: Limpamos a descrição curta antes de exibir
       const descricaoSegura = sanitizar(n.descricao_breve);
 
+      // Removemos o onclick daqui e colocamos o data-id
       return `
-        <article class="card-noticia" onclick="abrirNoticiaCompleta('${n.id}')" style="cursor: pointer;">
+        <article class="card-noticia" data-id="${n.id}" style="cursor: pointer;">
             <img src="${srcCapa}" class="card-img" alt="Capa">
             <div class="card-content">
                 <span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span>
@@ -133,6 +156,15 @@ function renderizarMural(lista) {
       `;
     })
     .join("");
+
+  // ADIÇÃO IMPORTANTE: Adiciona o evento de clique após criar o HTML
+  const cards = mural.querySelectorAll(".card-noticia");
+  cards.forEach((card) => {
+    card.addEventListener("click", function () {
+      const id = this.getAttribute("data-id");
+      abrirNoticiaCompleta(id);
+    });
+  });
 }
 
 function filtrar(cat, elemento) {
@@ -206,18 +238,19 @@ async function carregarGestaoAdmin() {
         if (dataExp < hoje) expirou = true;
       }
 
+      // Onde você monta a linha:
       const linhaHtml = `
-        <tr>
-          <td>${n.titulo}</td>
-          <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
-          <td>${dataPost}</td>
-          <td>${dataExpFormatada}</td>
-          <td>
-            <button class="btn-edit" onclick="prepararEdicao('${n.id}')">✏️</button>
-            <button class="btn-delete" onclick="deletarNoticia('${n.id}')">🗑️</button>
-          </td>
-        </tr>
-      `;
+  <tr>
+    <td>${n.titulo}</td>
+    <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
+    <td>${dataPost}</td>
+    <td>${dataExpFormatada}</td>
+    <td>
+      <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
+      <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
+    </td>
+  </tr>
+`;
 
       if (expirou) {
         listaExpiradas += linhaHtml;
@@ -243,6 +276,17 @@ async function carregarGestaoAdmin() {
     if (ativasNotif) ativasNotif.innerText = contAtivas;
     if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
   }
+
+  document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      prepararEdicao(this.getAttribute("data-id"));
+    });
+  });
+  document.querySelectorAll(".btn-deletar-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      deletarNoticia(this.getAttribute("data-id"));
+    });
+  });
 }
 
 // ─── MODAL DE LEITURA COM CARROSSEL ──────────────────────────────────────────
@@ -858,14 +902,28 @@ async function carregarUsuarios() {
             <td><span class="tag">${u.cargo}</span></td>
             <td><small>${u.status}</small></td>
             <td>
-              <button class="btn-edit" onclick="prepararEdicaoUsuario('${u.id}')">✏️ Editar</button>
-              <button class="btn-delete" onclick="arquivarUsuario('${u.id}', '${u.nome_completo}')">🗄️ Arquivar</button>
-            </td>
+    <button class="btn-edit btn-editar-usuario" data-id="${u.id}">✏️ Editar</button>
+    <button class="btn-delete btn-arquivar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">🗄️ Arquivar</button>
+  </td>
           </tr>
         `,
       )
       .join("");
   }
+
+  document.querySelectorAll(".btn-editar-usuario").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      prepararEdicaoUsuario(this.getAttribute("data-id"));
+    });
+  });
+  document.querySelectorAll(".btn-arquivar-usuario").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      arquivarUsuario(
+        this.getAttribute("data-id"),
+        this.getAttribute("data-nome"),
+      );
+    });
+  });
 }
 
 async function arquivarUsuario(id, nome) {
@@ -1099,12 +1157,18 @@ function renderizarPreviewAdmin() {
       <div style="position:relative;display:inline-block;">
         <img src="${src}" alt="Imagem ${i + 1}"
           style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:2px solid #ddd;" />
-        <button type="button" onclick="removerImagemIndividual(${i})"
-          style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;line-height:20px;text-align:center;">✕</button>
+        <button type="button" class="btn-remover-imagem-individual" data-index="${i}"
+  style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;line-height:20px;text-align:center;">✕</button>
       </div>
     `,
     )
     .join("");
+
+  document.querySelectorAll(".btn-remover-imagem-individual").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      removerImagemIndividual(parseInt(this.getAttribute("data-index")));
+    });
+  });
 }
 
 function removerImagemIndividual(index) {
@@ -1171,6 +1235,39 @@ async function keepAliveSupabase() {
   }
 }
 
+// --- SCRIPT DA BARRA DE PROGRESSO ---
+(function () {
+  var modal = document.getElementById("modal-leitura");
+  var shell = null;
+  var bar = document.getElementById("read-progress-bar");
+  if (!modal || !bar) return;
+
+  function onScroll() {
+    if (!shell) shell = modal.querySelector(".modal-news-shell");
+    if (!shell) return;
+    var scrolled = shell.scrollTop;
+    var total = shell.scrollHeight - shell.clientHeight;
+    var pct = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
+    bar.style.width = pct + "%";
+  }
+
+  var observer = new MutationObserver(function () {
+    var visible = modal.style.display !== "none";
+    if (visible) {
+      shell = modal.querySelector(".modal-news-shell");
+      if (shell) {
+        shell.removeEventListener("scroll", onScroll);
+        shell.addEventListener("scroll", onScroll, { passive: true });
+        bar.style.width = "0%";
+      }
+    }
+  });
+  observer.observe(modal, {
+    attributes: true,
+    attributeFilter: ["style"],
+  });
+})();
+
 // 5 dias em milissegundos = 5 * 24 * 60 * 60 * 1000
 const KEEP_ALIVE_INTERVALO_MS = 5 * 24 * 60 * 60 * 1000;
 
@@ -1178,3 +1275,85 @@ const KEEP_ALIVE_INTERVALO_MS = 5 * 24 * 60 * 60 * 1000;
 keepAliveSupabase();
 setInterval(keepAliveSupabase, KEEP_ALIVE_INTERVALO_MS);
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ==========================================
+// REGISTRO DE EVENTOS (SEM UNSAFE-INLINE)
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Comuns a várias páginas ---
+  const btnLogout = document.getElementById("btn-logout");
+  if (btnLogout) btnLogout.addEventListener("click", fazerLogout);
+
+  // --- Index ---
+  const btnFecharNoticia = document.getElementById("btn-fechar-noticia");
+  if (btnFecharNoticia)
+    btnFecharNoticia.addEventListener("click", fecharNoticia);
+
+  // --- Admin (Notificações) ---
+  const btnNovaNotificacao = document.getElementById("btn-nova-notificacao");
+  if (btnNovaNotificacao)
+    btnNovaNotificacao.addEventListener("click", () => {
+      document.getElementById("modal").style.display = "flex";
+    });
+
+  const btnFecharModalTopo = document.getElementById("btn-fechar-modal-topo");
+  if (btnFecharModalTopo)
+    btnFecharModalTopo.addEventListener("click", fecharModal);
+
+  const btnCancelarModal = document.getElementById("btn-cancelar-modal");
+  if (btnCancelarModal) btnCancelarModal.addEventListener("click", fecharModal);
+
+  const btnPublicar = document.getElementById("btn-publicar");
+  if (btnPublicar) btnPublicar.addEventListener("click", publicar);
+
+  const uploadArea = document.getElementById("upload-area");
+  const imagemFile = document.getElementById("imagem-file");
+  if (uploadArea && imagemFile) {
+    uploadArea.addEventListener("click", () => imagemFile.click());
+    imagemFile.addEventListener("change", handleImageUpload);
+  }
+
+  // --- Equipe (Usuários) ---
+  const btnCriarUsuario = document.getElementById("btn-criar-usuario");
+  if (btnCriarUsuario)
+    btnCriarUsuario.addEventListener("click", cadastrarFuncionario);
+
+  const btnFecharUsuarioTopo = document.getElementById(
+    "btn-fechar-usuario-topo",
+  );
+  if (btnFecharUsuarioTopo)
+    btnFecharUsuarioTopo.addEventListener("click", fecharModalUsuario);
+
+  const btnCancelarUsuario = document.getElementById("btn-cancelar-usuario");
+  if (btnCancelarUsuario)
+    btnCancelarUsuario.addEventListener("click", fecharModalUsuario);
+
+  const btnSalvarUsuario = document.getElementById("btn-salvar-usuario");
+  if (btnSalvarUsuario)
+    btnSalvarUsuario.addEventListener("click", salvarEdicaoUsuario);
+
+  // --- Auditoria (Logs) ---
+  const btnFiltrarLogs = document.getElementById("btn-filtrar-logs");
+  if (btnFiltrarLogs)
+    btnFiltrarLogs.addEventListener("click", alternarFiltrosLogs);
+
+  const btnAplicarFiltro = document.getElementById("btn-aplicar-filtro");
+  if (btnAplicarFiltro)
+    btnAplicarFiltro.addEventListener("click", aplicarFiltroLogs);
+
+  const btnLimparFiltro = document.getElementById("btn-limpar-filtro");
+  if (btnLimparFiltro)
+    btnLimparFiltro.addEventListener("click", removerFiltroLogs);
+
+  const btnPaginaAnterior = document.getElementById("btn-pagina-anterior");
+  if (btnPaginaAnterior)
+    btnPaginaAnterior.addEventListener("click", () =>
+      irParaPaginaLogs(paginaLogsAtual - 1),
+    );
+
+  const btnProximaPagina = document.getElementById("btn-proxima-pagina");
+  if (btnProximaPagina)
+    btnProximaPagina.addEventListener("click", () =>
+      irParaPaginaLogs(paginaLogsAtual + 1),
+    );
+});

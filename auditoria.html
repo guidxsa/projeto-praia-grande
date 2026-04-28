@@ -12,8 +12,9 @@
     ></script>
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
     />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
   </head>
 
   <body>
@@ -26,9 +27,7 @@
 
         <div class="user-info">
           <span id="nome-usuario-header">Carregando...</span>
-          <button type="button" onclick="fazerLogout()" class="btn-logout">
-            Sair
-          </button>
+          <button id="btn-logout" class="btn-logout">Sair</button>
         </div>
       </div>
 
@@ -64,7 +63,6 @@
             id="btn-filtrar-logs"
             class="btn-filter-toggle"
             type="button"
-            onclick="alternarFiltrosLogs()"
             aria-expanded="false"
             aria-controls="painel-filtros-logs"
           >
@@ -104,17 +102,16 @@
 
           <div class="logs-filter-actions">
             <button
+              id="btn-aplicar-filtro"
               type="button"
               class="btn-apply-filter"
-              onclick="aplicarFiltroLogs()"
             >
               Aplicar filtro
             </button>
-
             <button
+              id="btn-limpar-filtro"
               type="button"
               class="btn-clear-filter"
-              onclick="removerFiltroLogs()"
             >
               Limpar filtros
             </button>
@@ -139,25 +136,13 @@
           class="pagination-container"
           style="display: none"
         >
-          <button
-            id="btn-pagina-anterior"
-            class="pagination-btn"
-            type="button"
-            onclick="irParaPaginaLogs(paginaLogsAtual - 1)"
-          >
+          <button id="btn-pagina-anterior" class="pagination-btn" type="button">
             ← Anterior
           </button>
-
           <span id="pagina-logs-info" class="pagination-info">
             Página 1 de 1
           </span>
-
-          <button
-            id="btn-proxima-pagina"
-            class="pagination-btn"
-            type="button"
-            onclick="irParaPaginaLogs(paginaLogsAtual + 1)"
-          >
+          <button id="btn-proxima-pagina" class="pagination-btn" type="button">
             Próxima →
           </button>
         </div>

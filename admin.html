@@ -12,8 +12,9 @@
     ></script>
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
     />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
   </head>
 
   <body>
@@ -26,7 +27,7 @@
 
         <div class="user-info">
           <span id="nome-usuario-header">Carregando...</span>
-          <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+          <button id="btn-logout" class="btn-logout">Sair</button>
         </div>
       </div>
 
@@ -56,11 +57,7 @@
             Expiradas: <strong id="expiradas-notif" class="text-red">0</strong>
           </div>
         </div>
-
-        <button
-          class="btn-nova"
-          onclick="document.getElementById('modal').style.display = 'flex'"
-        >
+        <button id="btn-nova-notificacao" class="btn-nova">
           + Nova Notificação
         </button>
       </section>
@@ -104,7 +101,7 @@
       <div class="modal-form">
         <div class="modal-header">
           <h2>Nova Notificação</h2>
-          <button class="close" onclick="fecharModal()">×</button>
+          <button id="btn-fechar-modal-topo" class="close">×</button>
         </div>
 
         <div class="modal-body">
@@ -135,7 +132,6 @@
           <div
             class="upload-area"
             id="upload-area"
-            onclick="document.getElementById('imagem-file').click()"
             style="
               border: 2px dashed #ccc;
               border-radius: 8px;
@@ -154,7 +150,6 @@
               accept="image/*"
               multiple
               style="display: none"
-              onchange="handleImageUpload(event)"
             />
           </div>
           <canvas id="canvas-compressor" style="display: none"></canvas>
@@ -178,8 +173,8 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-          <button class="btn-postar" onclick="publicar()">
+          <button id="btn-cancelar-modal" class="btn-cancelar">Cancelar</button>
+          <button id="btn-publicar" class="btn-postar">
             Publicar Notificação
           </button>
         </div>
