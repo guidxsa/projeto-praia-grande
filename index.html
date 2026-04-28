@@ -12,8 +12,9 @@
     ></script>
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
     />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
   </head>
 
   <body>
@@ -31,24 +32,17 @@
     <main class="container">
       <section class="filters-container">
         <div class="category-tabs">
-          <button class="tab active" onclick="filtrar('Todas', this)">
-            Todas
-          </button>
-          <button class="tab" onclick="filtrar('Notícia', this)">
-            Notícias
-          </button>
-          <button class="tab" onclick="filtrar('Reunião', this)">
-            Reuniões
-          </button>
-          <button class="tab" onclick="filtrar('Evento', this)">Eventos</button>
-          <button class="tab" onclick="filtrar('Aviso', this)">Avisos</button>
+          <button class="tab active" data-categoria="Todas">Todas</button>
+          <button class="tab" data-categoria="Notícia">Notícias</button>
+          <button class="tab" data-categoria="Reunião">Reuniões</button>
+          <button class="tab" data-categoria="Evento">Eventos</button>
+          <button class="tab" data-categoria="Aviso">Avisos</button>
         </div>
         <div class="search-bar">
           <input
             type="text"
             id="input-busca"
             placeholder="Digite para buscar..."
-            onkeyup="buscar()"
           />
         </div>
       </section>
@@ -76,54 +70,17 @@
           <button
             class="close-btn"
             type="button"
-            onclick="fecharNoticia()"
+            id="btn-fechar-noticia"
             aria-label="Fechar notícia"
           >
             ×
           </button>
-
           <div id="conteudo-noticia-foco"></div>
         </div>
       </div>
     </div>
 
     <script src="app.js"></script>
-
-    <!-- Script da barra de progresso — inline, sem dependências externas -->
-    <script>
-      (function () {
-        var modal = document.getElementById("modal-leitura");
-        var shell = null;
-        var bar = document.getElementById("read-progress-bar");
-        if (!modal || !bar) return;
-
-        function onScroll() {
-          if (!shell) shell = modal.querySelector(".modal-news-shell");
-          if (!shell) return;
-          var scrolled = shell.scrollTop;
-          var total = shell.scrollHeight - shell.clientHeight;
-          var pct = total > 0 ? Math.min(100, (scrolled / total) * 100) : 0;
-          bar.style.width = pct + "%";
-        }
-
-        // Anexa listener ao shell quando o modal abre
-        var observer = new MutationObserver(function () {
-          var visible = modal.style.display !== "none";
-          if (visible) {
-            shell = modal.querySelector(".modal-news-shell");
-            if (shell) {
-              shell.removeEventListener("scroll", onScroll);
-              shell.addEventListener("scroll", onScroll, { passive: true });
-              bar.style.width = "0%";
-            }
-          }
-        });
-        observer.observe(modal, {
-          attributes: true,
-          attributeFilter: ["style"],
-        });
-      })();
-    </script>
 
     <footer class="footer-escola">
       <div class="footer-escola__container">

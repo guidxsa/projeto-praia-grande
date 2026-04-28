@@ -21,7 +21,7 @@
 
         <div class="user-info">
           <span id="nome-usuario-header">Carregando...</span>
-          <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+          <button id="btn-logout" class="btn-logout">Sair</button>
         </div>
       </div>
 
@@ -38,8 +38,9 @@
       </nav>
       <meta
         http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
+        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
       />
+      <meta name="referrer" content="strict-origin-when-cross-origin" />
     </header>
 
     <main class="container admin-page-stack">
@@ -93,7 +94,7 @@
           </div>
 
           <div class="form-actions">
-            <button class="btn-create-user" onclick="cadastrarFuncionario()">
+            <button id="btn-criar-usuario" class="btn-create-user">
               <span>+</span> Criar Acesso do Funcionário
             </button>
           </div>
@@ -133,7 +134,7 @@
       <div class="modal-content admin-modal">
         <div class="modal-header">
           <h2>✏️ Editar Funcionário</h2>
-          <span class="close" onclick="fecharModalUsuario()">&times;</span>
+          <span id="btn-fechar-usuario-topo" class="close">&times;</span>
         </div>
         <hr />
         <div class="modal-body">
@@ -159,10 +160,10 @@
           </div>
         </div>
         <div class="modal-footer" style="margin-top: 20px">
-          <button class="btn-postar" onclick="salvarEdicaoUsuario()">
+          <button id="btn-salvar-usuario" class="btn-postar">
             Salvar Alterações
           </button>
-          <button class="btn-cancelar" onclick="fecharModalUsuario()">
+          <button id="btn-cancelar-usuario" class="btn-cancelar">
             Cancelar
           </button>
         </div>
