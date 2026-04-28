@@ -43,11 +43,11 @@ O sistema consiste em ser um elo entre as autoridades da escola e os alunos/resp
 - [x] Implementar exclusão e edição de avisos
 
 ### Sprint 7 (08/04 - 14/04):
-- [ ] Testes de usabilidade
+- [x] Testes de usabilidade
 
 ### Sprint 8 (15/04 - 21/04):
-- [ ] Melhorar o design (UI) com feedbacks visuais.
-- [ ] Criar um Manual de Uso em PDF simples para a secretaria da escola.
+- [x] Melhorar o design (UI) com feedbacks visuais.
+- [x] Criar um Manual de Uso em PDF simples para a secretaria da escola.
 
 ### Sprint 9 (22/04 - 28/04):
-- [ ] Assegurar a segurança do site
+- [x] Assegurar a segurança do site
