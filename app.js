@@ -69,14 +69,14 @@ async function carregarMural() {
     .order("criado_em", { ascending: false });
 
   if (error) {
-    mural.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
+    mural.innerHTML = "<p>Erro ao carregar notícias.</p>";
     console.error("Erro ao carregar mural:", error.message);
     return;
   }
 
   if (noticias) {
-    todasNoticias = noticias;
-    renderizarMural(noticias);
+    todasNoticias = noticias; // Salva para a busca funcionar
+    renderizarMural(noticias); // Usa a função de desenho que já está correta no arquivo
   }
 }
 
@@ -1157,7 +1157,6 @@ function destacarLinkAtivo() {
   });
 }
 
-
 // ─── KEEP-ALIVE SUPABASE ─────────────────────────────────────────────────────
 // Previne que o projeto Supabase "durma" por inatividade.
 // Executa um SELECT silencioso a cada 5 dias (bem antes do limite de 7 dias).
@@ -1165,10 +1164,7 @@ function destacarLinkAtivo() {
 
 async function keepAliveSupabase() {
   try {
-    await _supabase
-      .from("notificacoes")
-      .select("id")
-      .limit(1);
+    await _supabase.from("notificacoes").select("id").limit(1);
     // Sem log no console em produção para não poluir
   } catch (_) {
     // Falha silenciosa — o keep-alive é best-effort
