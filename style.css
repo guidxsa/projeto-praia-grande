@@ -1929,3 +1929,33 @@ textarea {
     transform-origin: 12px 12px;
   }
 }
+
+
+
+/* ─── BOTÃO MINHAS NOTÍCIAS ─────────────────────────────────────────────────── */
+.btn-minhas-noticias {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn-minhas-noticias:hover {
+  border-color: #1a6b8a;
+  background: #f0f9ff;
+  color: #1a6b8a;
+}
+.btn-minhas-noticias.ativo {
+  background: #1a6b8a;
+  border-color: #1a6b8a;
+  color: #ffffff;
+}
+/* ─── FIM BOTÃO MINHAS NOTÍCIAS ──────────────────────────────────────────────── */
