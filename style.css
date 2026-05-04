@@ -1848,3 +1848,84 @@ textarea {
     font-size: 24px;
   }
 }
+
+
+
+/* === FOTO DA ESCOLA NO HEADER === */
+.logo-escola-foto {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;          /* círculo — combine com o estilo do header */
+  object-fit: cover;           /* corta sem distorcer */
+  object-position: center top; /* foca na parte superior (fachada) */
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+  display: block;
+}
+
+
+
+/* ── HEADER COLAPSÁVEL (mobile-only) ── */
+.btn-toggle-header {
+  display: none; /* invisível no desktop */
+}
+
+@media (max-width: 960px) {
+  /* Botão aparece no mobile */
+  .btn-toggle-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    color: var(--muted);
+    z-index: 21;
+    transition: color var(--transition), transform var(--transition) 0s;
+  }
+
+  .btn-toggle-header:hover {
+    color: var(--primary);
+  }
+
+  /* Header precisa de position relative para o botão absoluto funcionar */
+  .main-header {
+    position: sticky;
+    top: 0;
+    flex-direction: row;      /* volta para row no mobile */
+    align-items: center;
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+  }
+
+  /* Estado COLAPSADO */
+  .main-header.header-collapsed {
+    padding: 10px 16px;
+  }
+
+  .main-header.header-collapsed .logo-area p,
+  .main-header.header-collapsed .btn-acesso {
+    display: none;
+  }
+
+  .main-header.header-collapsed .logo-area h1 {
+    font-size: 0.95rem;
+  }
+
+  /* Chevron rotaciona quando colapsado */
+  .main-header.header-collapsed .btn-toggle-header {
+    bottom: -13px;
+  }
+
+  .main-header.header-collapsed #toggle-chevron {
+    transform: rotate(180deg);
+    transform-origin: 12px 12px;
+  }
+}

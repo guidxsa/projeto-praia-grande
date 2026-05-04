@@ -1,127 +1,112 @@
 <!doctype html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portal Escola Conectada</title>
-    <link rel="stylesheet" href="style.css" />
-    <script
-      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-      integrity="sha384-[HASH-GERADO-AQUI]"
-      crossorigin="anonymous"
-    ></script>
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;"
-    />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-  </head>
 
-  <body>
-    <header class="main-header">
-      <div class="logo-area">
-        <div class="logo-icon">🏫</div>
-        <div>
-          <h1>Portal Escola Conectada</h1>
-          <p>Notícias, eventos e comunicados importantes</p>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Escola Conectada</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" integrity="sha384-[HASH-GERADO-AQUI]"
+    crossorigin="anonymous"></script>
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://nnnniaoribyqkcxtbpvr.supabase.co; connect-src https://nnnniaoribyqkcxtbpvr.supabase.co;" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+</head>
+
+<body>
+  <header class="main-header">
+    <div class="logo-area">
+      <img src="Fotos/Logo da EMCEF.png" alt="Foto da escola EMCEF Praia Grande" class="logo-escola-foto" width="56"
+        height="56" loading="eager" />
+      <h1>Escola Conectada</h1>
+      <p>Portal de Notícias, eventos e comunicados </p>
+    </div>
+    </div>
+    <button id="btn-toggle-header" class="btn-toggle-header" aria-label="Minimizar cabeçalho" aria-expanded="true"
+      type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polyline id="toggle-chevron" points="18 15 12 9 6 15" />
+      </svg>
+    </button>
+    <a href="login.html" class="btn-acesso">➜ Acesso Funcionários</a>
+  </header>
+
+  <main class="container">
+    <section class="filters-container">
+      <div class="category-tabs">
+        <button class="tab active" data-categoria="Todas">Todas</button>
+        <button class="tab" data-categoria="Notícia">Notícias</button>
+        <button class="tab" data-categoria="Reunião">Reuniões</button>
+        <button class="tab" data-categoria="Evento">Eventos</button>
+        <button class="tab" data-categoria="Aviso">Avisos</button>
       </div>
-      <a href="login.html" class="btn-acesso">➜ Acesso Funcionários</a>
-    </header>
+      <div class="search-bar">
+        <input type="text" id="input-busca" placeholder="Digite para buscar..." />
+      </div>
+    </section>
 
-    <main class="container">
-      <section class="filters-container">
-        <div class="category-tabs">
-          <button class="tab active" data-categoria="Todas">Todas</button>
-          <button class="tab" data-categoria="Notícia">Notícias</button>
-          <button class="tab" data-categoria="Reunião">Reuniões</button>
-          <button class="tab" data-categoria="Evento">Eventos</button>
-          <button class="tab" data-categoria="Aviso">Avisos</button>
-        </div>
-        <div class="search-bar">
-          <input
-            type="text"
-            id="input-busca"
-            placeholder="Digite para buscar..."
-          />
-        </div>
-      </section>
+    <section id="mural-noticias" class="news-grid">
+      <p class="loading-msg">Carregando notícias do mural...</p>
+    </section>
+  </main>
 
-      <section id="mural-noticias" class="news-grid">
-        <p class="loading-msg">Carregando notícias do mural...</p>
-      </section>
-    </main>
+  <!-- MODAL DE LEITURA — estrutura ampliada para novo layout editorial -->
+  <div id="modal-leitura" class="modal-overlay" style="display: none" role="dialog" aria-modal="true"
+    aria-labelledby="titulo-modal-leitura">
+    <div class="modal-content-full">
+      <!-- Barra de progresso de leitura -->
+      <div class="read-progress-bar" id="read-progress-bar"></div>
 
-    <!-- MODAL DE LEITURA — estrutura ampliada para novo layout editorial -->
-    <div
-      id="modal-leitura"
-      class="modal-overlay"
-      style="display: none"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="titulo-modal-leitura"
-    >
-      <div class="modal-content-full">
-        <!-- Barra de progresso de leitura -->
-        <div class="read-progress-bar" id="read-progress-bar"></div>
-
-        <div class="modal-news-shell">
-          <!-- Botão fechar flutuante -->
-          <button
-            class="close-btn"
-            type="button"
-            id="btn-fechar-noticia"
-            aria-label="Fechar notícia"
-          >
-            ×
-          </button>
-          <div id="conteudo-noticia-foco"></div>
-        </div>
+      <div class="modal-news-shell">
+        <!-- Botão fechar flutuante -->
+        <button class="close-btn" type="button" id="btn-fechar-noticia" aria-label="Fechar notícia">
+          ×
+        </button>
+        <div id="conteudo-noticia-foco"></div>
       </div>
     </div>
+  </div>
 
-    <script src="app.js"></script>
+  <script src="app.js"></script>
 
-    <footer class="footer-escola">
-      <div class="footer-escola__container">
-        <div class="footer-escola__cabecalho">
-          <p class="footer-escola__tag">EMCEF Praia Grande</p>
-          <h2 class="footer-escola__titulo">
-            Informações de contato e localização
-          </h2>
-          <p class="footer-escola__descricao">
-            Canal oficial da escola para responsáveis, alunos e comunidade.
-          </p>
-        </div>
-
-        <div class="footer-escola__cards">
-          <section class="footer-escola__card">
-            <h3>Contato</h3>
-            <p><strong>Telefone:</strong> (27) 3191-1430</p>
-            <p><strong>E-mail:</strong> emcefpraiagrande@fundao.es.gov.br</p>
-          </section>
-
-          <section class="footer-escola__card">
-            <h3>Endereço</h3>
-            <p>Rua Amapá, S/N</p>
-            <p>Praia Grande, Fundão - ES</p>
-            <p>CEP 29187-000</p>
-          </section>
-
-          <section class="footer-escola__card footer-escola__card--mapa">
-            <h3>Localização</h3>
-            <p>Abra o ponto oficial da escola no mapa.</p>
-            <a
-              class="footer-escola__botao"
-              href="https://maps.app.goo.gl/CiJHmkteVYVYeU1P9"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ver no Google Maps
-            </a>
-          </section>
-        </div>
+  <footer class="footer-escola">
+    <div class="footer-escola__container">
+      <div class="footer-escola__cabecalho">
+        <p class="footer-escola__tag">EMCEF Praia Grande</p>
+        <h2 class="footer-escola__titulo">
+          Informações de contato e localização
+        </h2>
+        <p class="footer-escola__descricao">
+          Canal oficial da escola para responsáveis, alunos e comunidade.
+        </p>
       </div>
-    </footer>
-  </body>
+
+      <div class="footer-escola__cards">
+        <section class="footer-escola__card">
+          <h3>Contato</h3>
+          <p><strong>Telefone:</strong> (27) 3191-1430</p>
+          <p><strong>E-mail:</strong> emcefpraiagrande@fundao.es.gov.br</p>
+        </section>
+
+        <section class="footer-escola__card">
+          <h3>Endereço</h3>
+          <p>Rua Amapá, S/N</p>
+          <p>Praia Grande, Fundão - ES</p>
+          <p>CEP 29187-000</p>
+        </section>
+
+        <section class="footer-escola__card footer-escola__card--mapa">
+          <h3>Localização</h3>
+          <p>Abra o ponto oficial da escola no mapa.</p>
+          <a class="footer-escola__botao" href="https://maps.app.goo.gl/CiJHmkteVYVYeU1P9" target="_blank"
+            rel="noopener noreferrer">
+            Ver no Google Maps
+          </a>
+        </section>
+      </div>
+    </div>
+  </footer>
+</body>
+
 </html>
