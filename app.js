@@ -6,6 +6,9 @@ const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 // Estado global
 let todasNoticias = [];
 let idEmEdicao = null;
+// Filtro "Minhas Notícias" no gerenciamento admin
+let _todasNoticiasAdmin = []; // cache das notícias carregadas na tela admin
+let _filtroMinhasNoticias = false; // status do toggle
 
 // ─── MULTI-IMAGEM: array de base64 em memória ────────────────────────────────
 let imagensEmEdicao = [];
@@ -219,73 +222,77 @@ async function carregarGestaoAdmin() {
     return;
   }
 
-  if (noticias) {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
+  if (!noticias) return;
 
-    let listaAtivas = "";
-    let listaExpiradas = "";
-    let contAtivas = 0;
-    let contExpiradas = 0;
+  // ✅ NOVO: salva cache
+  _todasNoticiasAdmin = noticias;
 
-    noticias.forEach((n) => {
-      const dataPost = n.criado_em
-        ? new Date(n.criado_em).toLocaleDateString()
-        : "---";
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
 
-      let dataExpFormatada = "Sem expiração";
-      let expirou = false;
+  let listaAtivas = "";
+  let listaExpiradas = "";
+  let contAtivas = 0;
+  let contExpiradas = 0;
 
-      if (n.data_expiracao) {
-        const dataExp = new Date(n.data_expiracao + "T00:00:00");
-        dataExpFormatada = dataExp.toLocaleDateString();
-        if (dataExp < hoje) expirou = true;
-      }
+  noticias.forEach((n) => {
+    const dataPost = n.criado_em
+      ? new Date(n.criado_em).toLocaleDateString()
+      : "---";
 
-      // Onde você monta a linha:
-      const linhaHtml = `
-  <tr>
-    <td>${n.titulo}</td>
-    <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
-    <td>${dataPost}</td>
-    <td>${dataExpFormatada}</td>
-    <td>
-      <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
-      <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
-    </td>
-  </tr>
-`;
+    let dataExpFormatada = "Sem expiração";
+    let expirou = false;
 
-      if (expirou) {
-        listaExpiradas += linhaHtml;
-        contExpiradas++;
-      } else {
-        listaAtivas += linhaHtml;
-        contAtivas++;
-      }
-    });
+    if (n.data_expiracao) {
+      const dataExp = new Date(n.data_expiracao + "T00:00:00");
+      dataExpFormatada = dataExp.toLocaleDateString();
+      if (dataExp < hoje) expirou = true;
+    }
 
-    corpoAtivas.innerHTML =
-      listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
+    const linhaHtml = `
+      <tr>
+        <td>${n.titulo}</td>
+        <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
+        <td>${dataPost}</td>
+        <td>${dataExpFormatada}</td>
+        <td>
+          <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
+          <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
+        </td>
+      </tr>
+    `;
 
-    corpoExpiradas.innerHTML =
-      listaExpiradas ||
-      '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
+    if (expirou) {
+      listaExpiradas += linhaHtml;
+      contExpiradas++;
+    } else {
+      listaAtivas += linhaHtml;
+      contAtivas++;
+    }
+  });
 
-    const totalNotif = document.getElementById("total-notif");
-    const ativasNotif = document.getElementById("ativas-notif");
-    const expiradasNotif = document.getElementById("expiradas-notif");
+  corpoAtivas.innerHTML =
+    listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
 
-    if (totalNotif) totalNotif.innerText = noticias.length;
-    if (ativasNotif) ativasNotif.innerText = contAtivas;
-    if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
-  }
+  corpoExpiradas.innerHTML =
+    listaExpiradas ||
+    '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
 
+  const totalNotif = document.getElementById("total-notif");
+  const ativasNotif = document.getElementById("ativas-notif");
+  const expiradasNotif = document.getElementById("expiradas-notif");
+
+  if (totalNotif) totalNotif.innerText = noticias.length;
+  if (ativasNotif) ativasNotif.innerText = contAtivas;
+  if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
+
+  // listeners
   document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicao(this.getAttribute("data-id"));
     });
   });
+
   document.querySelectorAll(".btn-deletar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
       deletarNoticia(this.getAttribute("data-id"));
@@ -1298,7 +1305,26 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnNovaNotificacao)
     btnNovaNotificacao.addEventListener("click", () => {
       document.getElementById("modal").style.display = "flex";
+    }
+    );
+
+  // ── NOVO: botão Minhas Notícias ──────────────────────────────
+  const btnMinhas = document.getElementById("btn-minhas-noticias");
+
+  if (btnMinhas) {
+    btnMinhas.addEventListener("click", async () => {
+      _filtroMinhasNoticias = !_filtroMinhasNoticias;
+
+      btnMinhas.classList.toggle("ativo", _filtroMinhasNoticias);
+
+      btnMinhas.textContent = _filtroMinhasNoticias
+        ? "✅ Minhas Notícias"
+        : "👤 Minhas Notícias";
+
+      await aplicarFiltroMinhasNoticias();
     });
+  }
+  // ─────────────────────────────────────────────────────────────
 
   const btnFecharModalTopo = document.getElementById("btn-fechar-modal-topo");
   if (btnFecharModalTopo)
@@ -1421,3 +1447,93 @@ async function arquivarNoticiasExpiradas() {
   }
 }
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─── FILTRO MINHAS NOTÍCIAS ─────────────────────────────
+async function aplicarFiltroMinhasNoticias() {
+  const corpoAtivas = document.getElementById("tabela-ativas");
+  const corpoExpiradas = document.getElementById("tabela-expiradas");
+
+  if (!corpoAtivas || !corpoExpiradas) return;
+
+  const {
+    data: { user },
+  } = await _supabase.auth.getUser();
+
+  if (!user) return;
+
+  const noticiasVisiveis = _filtroMinhasNoticias
+    ? _todasNoticiasAdmin.filter(
+      (n) =>
+        n.autor_id === user.id ||
+        (!n.autor_id &&
+          n.nome_autor === (user.user_metadata?.nome_completo || ""))
+    )
+    : _todasNoticiasAdmin;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  let listaAtivas = "";
+  let listaExpiradas = "";
+
+  noticiasVisiveis.forEach((n) => {
+    const dataPost = n.criado_em
+      ? new Date(n.criado_em).toLocaleDateString()
+      : "---";
+
+    let dataExpFormatada = "Sem expiração";
+    let expirou = false;
+
+    if (n.data_expiracao) {
+      const dataExp = new Date(n.data_expiracao + "T00:00:00");
+      dataExpFormatada = dataExp.toLocaleDateString();
+      if (dataExp < hoje) expirou = true;
+    }
+
+    const linhaHtml = `
+      <tr>
+        <td>${n.titulo}</td>
+        <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
+        <td>${dataPost}</td>
+        <td>${dataExpFormatada}</td>
+        <td>
+          <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
+          <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
+        </td>
+      </tr>
+    `;
+
+    if (expirou) {
+      listaExpiradas += linhaHtml;
+    } else {
+      listaAtivas += linhaHtml;
+    }
+  });
+
+  const msgVazia = _filtroMinhasNoticias
+    ? "Você não criou nenhuma notícia."
+    : "Nenhuma notícia ativa.";
+
+  const msgVaziaExp = _filtroMinhasNoticias
+    ? "Você não tem notícias expiradas."
+    : "Nenhuma notícia expirada.";
+
+  corpoAtivas.innerHTML =
+    listaAtivas || `<tr><td colspan="5">${msgVazia}</td></tr>`;
+
+  corpoExpiradas.innerHTML =
+    listaExpiradas || `<tr><td colspan="5">${msgVaziaExp}</td></tr>`;
+
+  // reatribui eventos
+  document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      prepararEdicao(this.getAttribute("data-id"));
+    });
+  });
+
+  document.querySelectorAll(".btn-deletar-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      deletarNoticia(this.getAttribute("data-id"));
+    });
+  });
+}
