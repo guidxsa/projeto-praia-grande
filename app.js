@@ -52,6 +52,7 @@ async function init() {
     document.getElementById("tabela-ativas") ||
     document.getElementById("tabela-expiradas")
   ) {
+    await arquivarNoticiasExpiradas(); // Arquiva automaticamente antes de renderizar
     await carregarGestaoAdmin();
   }
 
@@ -87,9 +88,12 @@ async function carregarMural() {
   const mural = document.getElementById("mural-noticias");
   if (!mural) return;
 
+  const hoje = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
     .select("*")
+    .or(`data_expiracao.is.null,data_expiracao.gte.${hoje}`)
     .order("criado_em", { ascending: false });
 
   if (error) {
@@ -126,7 +130,7 @@ function parseImagensUrl(imagem_url) {
   try {
     const parsed = JSON.parse(imagem_url);
     if (Array.isArray(parsed)) return parsed.filter(Boolean);
-  } catch (_) {}
+  } catch (_) { }
   return [imagem_url];
 }
 
@@ -372,11 +376,11 @@ async function abrirNoticiaCompleta(id) {
       imagensParaExibir.length > 1
         ? `<div class="carrossel-dots">
           ${imagensParaExibir
-            .map(
-              (_, i) =>
-                `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`,
-            )
-            .join("")}
+          .map(
+            (_, i) =>
+              `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`,
+          )
+          .join("")}
         </div>`
         : "";
 
@@ -397,8 +401,8 @@ async function abrirNoticiaCompleta(id) {
       </div>
       <div class="noticia-full-meta">
         Postado por: ${n.nome_autor} | Data: ${new Date(
-          n.criado_em,
-        ).toLocaleDateString()}
+      n.criado_em,
+    ).toLocaleDateString()}
       </div>
       <div class="noticia-full-text">
         ${textoComLinks}
@@ -1357,3 +1361,63 @@ document.addEventListener("DOMContentLoaded", () => {
       irParaPaginaLogs(paginaLogsAtual + 1),
     );
 });
+
+
+/* ── Toggle header mobile ── */
+(function () {
+  const header = document.querySelector('.main-header');
+  const btn = document.getElementById('btn-toggle-header');
+  if (!header || !btn) return;
+
+  btn.addEventListener('click', () => {
+    const collapsed = header.classList.toggle('header-collapsed');
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    btn.setAttribute('aria-label', collapsed ? 'Expandir cabeçalho' : 'Minimizar cabeçalho');
+  });
+})();
+
+
+// ─── AUTO-ARQUIVO DE NOTÍCIAS EXPIRADAS ──────────────────────────────────────
+async function arquivarNoticiasExpiradas() {
+  const hoje = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+  const { data: expiradas, error } = await _supabase
+    .from("notificacoes")
+    .select("*")
+    .lt("data_expiracao", hoje); // data_expiracao < hoje (já passou de 23:59)
+
+  if (error || !expiradas || expiradas.length === 0) return;
+
+  const {
+    data: { user },
+  } = await _supabase.auth.getUser();
+
+  if (!user) return; // Só executa se houver admin logado
+
+  for (const noticia of expiradas) {
+    const { error: errArq } = await _supabase
+      .from("notificacoes_arquivadas")
+      .upsert([
+        {
+          ...noticia,
+          arquivado_por_id: user.id,
+          arquivado_por_nome: user.user_metadata.nome_completo,
+        },
+      ]);
+
+    if (errArq) {
+      console.error("Erro ao arquivar notícia expirada:", noticia.titulo, errArq.message);
+      continue; // Não para o loop; tenta arquivar as próximas
+    }
+
+    await registrarLog(
+      "Arquivou",
+      noticia.titulo,
+      noticia.id,
+      "Arquivamento automático por expiração de data",
+    );
+
+    await _supabase.from("notificacoes").delete().eq("id", noticia.id);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
