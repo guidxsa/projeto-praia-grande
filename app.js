@@ -3,6 +3,14 @@ const supabaseUrl = "https://nnnniaoribyqkcxtbpvr.supabase.co";
 const supabaseKey = "sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz";
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+// Este cliente não salva a sessão, então não vai deslogar o Admin!
+const _supabaseCadastro = supabase.createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
+
 // Estado global
 let todasNoticias = [];
 let idEmEdicao = null;
@@ -133,7 +141,7 @@ function parseImagensUrl(imagem_url) {
   try {
     const parsed = JSON.parse(imagem_url);
     if (Array.isArray(parsed)) return parsed.filter(Boolean);
-  } catch (_) { }
+  } catch (_) {}
   return [imagem_url];
 }
 
@@ -275,8 +283,7 @@ async function carregarGestaoAdmin() {
     listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
 
   corpoExpiradas.innerHTML =
-    listaExpiradas ||
-    '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
+    listaExpiradas || '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
 
   const totalNotif = document.getElementById("total-notif");
   const ativasNotif = document.getElementById("ativas-notif");
@@ -383,11 +390,11 @@ async function abrirNoticiaCompleta(id) {
       imagensParaExibir.length > 1
         ? `<div class="carrossel-dots">
           ${imagensParaExibir
-          .map(
-            (_, i) =>
-              `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`,
-          )
-          .join("")}
+            .map(
+              (_, i) =>
+                `<span class="carrossel-dot${i === 0 ? " active" : ""}" onclick="irParaDot(${i}, event)"></span>`,
+            )
+            .join("")}
         </div>`
         : "";
 
@@ -408,8 +415,8 @@ async function abrirNoticiaCompleta(id) {
       </div>
       <div class="noticia-full-meta">
         Postado por: ${n.nome_autor} | Data: ${new Date(
-      n.criado_em,
-    ).toLocaleDateString()}
+          n.criado_em,
+        ).toLocaleDateString()}
       </div>
       <div class="noticia-full-text">
         ${textoComLinks}
@@ -647,14 +654,22 @@ async function cadastrarFuncionario() {
     return;
   }
 
-  const { data: authData, error: authError } = await _supabase.auth.signUp({
-    email: email,
-    password: password,
-    options: { data: { nome_completo: nome, cargo: cargo } },
-  });
+  const { data: authData, error: authError } =
+    await _supabaseCadastro.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { nome_completo: nome, cargo: cargo } },
+    });
 
   if (authError) {
-    msg.innerText = "Erro no cadastro: " + authError.message;
+    let msgTraduzida = authError.message;
+    if (msgTraduzida.includes("at least 6 characters"))
+      msgTraduzida = "A senha deve ter pelo menos 6 caracteres.";
+    if (msgTraduzida.includes("already registered"))
+      msgTraduzida = "Este e-mail já está cadastrado.";
+
+    msg.innerText = "Erro no cadastro: " + msgTraduzida;
+    msg.style.color = "red";
     return;
   }
 
@@ -671,24 +686,16 @@ async function cadastrarFuncionario() {
     ]);
 
   if (perfilError) {
-    msg.innerText =
-      "Usuário criado, mas erro ao gerar perfil: " + perfilError.message;
+    msg.innerText = "Erro ao gerar perfil: " + perfilError.message;
+    msg.style.color = "red";
   } else {
     msg.innerText = "Funcionário cadastrado com sucesso!";
     msg.style.color = "green";
 
-    document
-      .querySelectorAll("#novo-nome, #novo-email, #nova-senha")
-      .forEach((i) => (i.value = ""));
-
-    carregarUsuarios();
-
-    await registrarLog(
-      "Cadastrou Usuário",
-      nome,
-      authData.user.id,
-      `Novo acesso criado para ${cargo}`,
-    );
+    // Limpar os campos após o sucesso
+    document.getElementById("nome-func").value = "";
+    document.getElementById("email-func").value = "";
+    document.getElementById("senha-func").value = "";
   }
 }
 
@@ -1305,8 +1312,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnNovaNotificacao)
     btnNovaNotificacao.addEventListener("click", () => {
       document.getElementById("modal").style.display = "flex";
-    }
-    );
+    });
 
   // ── NOVO: botão Minhas Notícias ──────────────────────────────
   const btnMinhas = document.getElementById("btn-minhas-noticias");
@@ -1388,20 +1394,21 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 });
 
-
 /* ── Toggle header mobile ── */
 (function () {
-  const header = document.querySelector('.main-header');
-  const btn = document.getElementById('btn-toggle-header');
+  const header = document.querySelector(".main-header");
+  const btn = document.getElementById("btn-toggle-header");
   if (!header || !btn) return;
 
-  btn.addEventListener('click', () => {
-    const collapsed = header.classList.toggle('header-collapsed');
-    btn.setAttribute('aria-expanded', String(!collapsed));
-    btn.setAttribute('aria-label', collapsed ? 'Expandir cabeçalho' : 'Minimizar cabeçalho');
+  btn.addEventListener("click", () => {
+    const collapsed = header.classList.toggle("header-collapsed");
+    btn.setAttribute("aria-expanded", String(!collapsed));
+    btn.setAttribute(
+      "aria-label",
+      collapsed ? "Expandir cabeçalho" : "Minimizar cabeçalho",
+    );
   });
 })();
-
 
 // ─── AUTO-ARQUIVO DE NOTÍCIAS EXPIRADAS ──────────────────────────────────────
 async function arquivarNoticiasExpiradas() {
@@ -1432,7 +1439,11 @@ async function arquivarNoticiasExpiradas() {
       ]);
 
     if (errArq) {
-      console.error("Erro ao arquivar notícia expirada:", noticia.titulo, errArq.message);
+      console.error(
+        "Erro ao arquivar notícia expirada:",
+        noticia.titulo,
+        errArq.message,
+      );
       continue; // Não para o loop; tenta arquivar as próximas
     }
 
@@ -1463,11 +1474,11 @@ async function aplicarFiltroMinhasNoticias() {
 
   const noticiasVisiveis = _filtroMinhasNoticias
     ? _todasNoticiasAdmin.filter(
-      (n) =>
-        n.autor_id === user.id ||
-        (!n.autor_id &&
-          n.nome_autor === (user.user_metadata?.nome_completo || ""))
-    )
+        (n) =>
+          n.autor_id === user.id ||
+          (!n.autor_id &&
+            n.nome_autor === (user.user_metadata?.nome_completo || "")),
+      )
     : _todasNoticiasAdmin;
 
   const hoje = new Date();
