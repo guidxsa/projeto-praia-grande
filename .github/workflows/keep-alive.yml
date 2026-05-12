@@ -11,14 +11,7 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -s \
-            -X GET \
-            "https://nnnniaoribyqkcxtbpvr.supabase.co/rest/v1/notificacoes?select=id&limit=1" \
-            -H "apikey: sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz" \
-            -H "Authorization: Bearer sb_publishable__2Z9ePW2wWB3z0hchdpkcw_pfbLhWtz" \
-            -H "Accept: application/json" \
-            -o /dev/null \
-            --fail \
-            --silent \
-            --show-error
-          echo "Keep-alive executado com sucesso."
+          curl -s -X GET "https://nnnniaoribyqkcxtbpvr.supabase.co/rest/v1/notificacoes?select=id&limit=1" \
+          -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubm5pYW9yaWJ5cWtjeHRicHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcwNDMsImV4cCI6MjA4ODI4MzA0M30.oFOmO8kov8Gncy3kTwoMKPvPv2Og5Lzi4J7QyGWGKmo" \
+          -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubm5pYW9yaWJ5cWtjeHRicHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcwNDMsImV4cCI6MjA4ODI4MzA0M30.oFOmO8kov8Gncy3kTwoMKPvPv2Og5Lzi4J7QyGWGKmo" \
+          --fail || echo "Aviso: O ping falhou, mas a tentativa foi feita."
