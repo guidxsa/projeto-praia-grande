@@ -2,25 +2,30 @@
 
 Sistema web desenvolvido para modernizar a comunicação entre a escola EMCEF Praia Grande e os responsáveis dos alunos.
 
+---
+
 ## Índice
 
 - [Sobre o Projeto](#sobre-o-projeto)
 - [Objetivo](#objetivo)
 - [Impacto Esperado](#impacto-esperado)
-- [Como Executar](#como-executar-o-projeto)
-- [Cronograma](#cronograma-inicial)
+- [Acesso ao Sistema](#acesso-ao-sistema)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
-- [Arquitetura](#arquitetura-do-sistema)
+- [Protótipo](#protótipo)
+- [Arquitetura do Sistema](#arquitetura-do-sistema)
+- [Banco de Dados](#banco-de-dados)
 - [Funcionalidades](#funcionalidades)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Segurança](#segurança)
-- [Hospedagem](#hospedagem)
+- [Execução Local para Desenvolvimento](#execução-local-para-desenvolvimento)
 - [Cronograma Inicial](#cronograma-inicial)
 - [Equipe](#equipe)
 
+---
+
 ## Sobre o Projeto
 
-Esse é um projeto extensionista da matéria de PI 5 da faculdade UCL que tem como objetivo ajudar a escola EMCEF Praia Grande, sem fins lucrativos e totalmente gratuito.
+Este projeto extensionista foi desenvolvido na disciplina de Projeto Integrador V da faculdade UCL que tem como objetivo ajudar a escola EMCEF Praia Grande, sem fins lucrativos e totalmente gratuito.
 
 A escola relatou dificuldades no processo de comunicação com os responsáveis,
 baseado majoritariamente em avisos impressos, gerando custos elevados com papel
@@ -28,6 +33,8 @@ e baixa eficiência na disseminação das informações.
 
 O sistema atua como um elo de comunicação entre a equipe escolar e os responsáveis pelos alunos,
 tornando a divulgação de informações mais rápida e acessível.
+
+---
 
 ## Objetivo
 
@@ -41,6 +48,16 @@ a divulgação de informações escolares.
 - Comunicação mais rápida com responsáveis
 - Maior acessibilidade às informações escolares
 - Modernização do processo informativo da escola
+
+---
+
+## Acesso ao Sistema
+
+O sistema está hospedado utilizando GitHub Pages:
+
+[Projeto Hospedado](https://guidxsa.github.io/projeto-praia-grande/)
+
+---
 
 ## Tecnologias Utilizadas
 
@@ -66,6 +83,14 @@ e integração via APIs REST.
 O GitHub Pages foi escolhido para hospedagem devido à facilidade de integração
 com o repositório e zero custo.
 
+---
+
+## Protótipo
+
+[Protótipo Figma](https://www.figma.com/make/YW9oifjMRN9UUzMFJlyEQk/Escola-Notifica%C3%A7%C3%B5es-Site?p=f&fullscreen=1)
+
+---
+
 ## Arquitetura do Sistema
 
 O projeto utiliza uma arquitetura baseada em Frontend + Backend as a Service (BaaS).
@@ -73,6 +98,85 @@ O projeto utiliza uma arquitetura baseada em Frontend + Backend as a Service (Ba
 - Frontend desenvolvido com HTML5, CSS3 e JavaScript puro
 - Supabase responsável pela autenticação e persistência de dados
 - GitHub Pages utilizado para hospedagem estática
+
+---
+
+## Banco de Dados
+
+### Table `logs_atividades`
+
+#### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `criado_em` | `timestamptz` |  Nullable |
+| `noticia_id` | `uuid` |  Nullable |
+| `usuario_nome` | `text` |  Nullable |
+| `usuario_cargo` | `text` |  Nullable |
+| `acao` | `text` |  Nullable |
+| `item_titulo` | `text` |  Nullable |
+| `detalhes` | `text` |  Nullable |
+| `usuario_id` | `uuid` |  Nullable |
+
+### Table `notificacoes`
+
+#### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `titulo` | `text` |  |
+| `categoria` | `text` |  |
+| `descricao_breve` | `text` |  |
+| `conteudo_completo` | `text` |  Nullable |
+| `imagem_url` | `text` |  Nullable |
+| `data_publicacao` | `date` |  |
+| `nome_autor` | `text` |  |
+| `cargo_autor` | `text` |  Nullable |
+| `autor_id` | `uuid` |  |
+| `criado_em` | `timestamptz` |  Nullable |
+| `data_expiracao` | `date` |  Nullable |
+
+### Table `notificacoes_arquivadas`
+
+#### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `titulo` | `text` |  Nullable |
+| `categoria` | `text` |  Nullable |
+| `descricao_breve` | `text` |  Nullable |
+| `conteudo_completo` | `text` |  Nullable |
+| `imagem_url` | `text` |  Nullable |
+| `data_publicacao` | `date` |  Nullable |
+| `nome_autor` | `text` |  Nullable |
+| `cargo_autor` | `text` |  Nullable |
+| `autor_id` | `uuid` |  Nullable |
+| `criado_em` | `timestamptz` |  Nullable |
+| `data_expiracao` | `date` |  Nullable |
+| `arquivado_em` | `timestamptz` |  Nullable |
+| `arquivado_por_nome` | `text` |  Nullable |
+| `arquivado_por_cargo` | `text` |  Nullable |
+| `arquivado_por_id` | `uuid` |  Nullable |
+
+### Table `perfis_usuarios`
+
+#### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `nome_completo` | `text` |  |
+| `cargo` | `text` |  Nullable |
+| `email` | `text` |  Nullable Unique |
+| `status` | `text` |  Nullable |
+| `criado_em` | `timestamptz` |  Nullable |
+
+<img width="549" height="713" alt="image" src="https://github.com/user-attachments/assets/2dd073dc-507e-4bf0-9770-90789c7a0bd8" />
+
+---
 
 ## Funcionalidades
 
@@ -82,6 +186,8 @@ O projeto utiliza uma arquitetura baseada em Frontend + Backend as a Service (Ba
 - Filtros por categoria e data
 - Edição e exclusão de avisos
 - Interface pública para responsáveis e alunos
+
+---
 
 ## Estrutura do Projeto
 
@@ -104,7 +210,9 @@ O projeto utiliza uma arquitetura baseada em Frontend + Backend as a Service (Ba
 - Armazenamento seguro via Supabase
 - Separação entre área pública e área administrativa
 
-## Como Executar o Projeto
+---
+
+## Execução Local para Desenvolvimento
 
 ### 1. Clone o repositório
 
@@ -120,11 +228,7 @@ Abra o projeto utilizando um editor como o VSCode.
 
 Utilize uma extensão de servidor local, como o Live Server.
 
-## Hospedagem
-
-O sistema está hospedado utilizando GitHub Pages:
-
-[Projeto Hospedado](https://guidxsa.github.io/projeto-praia-grande/)
+---
 
 ## Cronograma Inicial
 ### Semana 0 (17/02 - 24/02):
@@ -168,6 +272,8 @@ O sistema está hospedado utilizando GitHub Pages:
 
 ### Sprint 9 (22/04 - 28/04):
 - [x] Assegurar a segurança do site
+
+---
 
 ## Equipe
 
