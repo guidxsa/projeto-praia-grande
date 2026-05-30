@@ -79,6 +79,36 @@ document.addEventListener("DOMContentLoaded", () => {
     btnEntrar.addEventListener("click", fazerLogin);
   }
 
+  /* ── Toggle Stats Mobile (Painel Admin) ── */
+  const btnStats = document.getElementById("btn-toggle-stats");
+  const adminStatsBar = document.getElementById("admin-stats-bar");
+
+  if (adminStatsBar && btnStats) {
+    btnStats.addEventListener("click", () => {
+      const collapsed = adminStatsBar.classList.toggle("stats-collapsed");
+      btnStats.setAttribute("aria-expanded", String(!collapsed));
+      btnStats.setAttribute(
+        "aria-label",
+        collapsed ? "Expandir barra" : "Minimizar barra",
+      );
+    });
+  }
+
+  /* ── Toggle Menu Superior Admin Mobile ── */
+  const btnToggleAdmin = document.getElementById("btn-toggle-admin");
+  const adminHeaderTopo = document.getElementById("admin-header-topo");
+
+  if (btnToggleAdmin && adminHeaderTopo) {
+    btnToggleAdmin.addEventListener("click", () => {
+      const collapsed = adminHeaderTopo.classList.toggle("admin-collapsed");
+      btnToggleAdmin.setAttribute("aria-expanded", String(!collapsed));
+      btnToggleAdmin.setAttribute(
+        "aria-label",
+        collapsed ? "Expandir menu" : "Minimizar menu",
+      );
+    });
+  }
+
   // Listener do input de busca
   const inputBusca = document.getElementById("input-busca");
   if (inputBusca) {
@@ -216,9 +246,8 @@ function buscar() {
 
 async function carregarGestaoAdmin() {
   const corpoAtivas = document.getElementById("tabela-ativas");
-  const corpoExpiradas = document.getElementById("tabela-expiradas");
 
-  if (!corpoAtivas || !corpoExpiradas) return;
+  if (!corpoAtivas) return;
 
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
@@ -232,16 +261,10 @@ async function carregarGestaoAdmin() {
 
   if (!noticias) return;
 
-  // ✅ NOVO: salva cache
+  // Mantém o cache para o filtro de "Minhas Notícias"
   _todasNoticiasAdmin = noticias;
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
   let listaAtivas = "";
-  let listaExpiradas = "";
-  let contAtivas = 0;
-  let contExpiradas = 0;
 
   noticias.forEach((n) => {
     const dataPost = n.criado_em
@@ -249,15 +272,14 @@ async function carregarGestaoAdmin() {
       : "---";
 
     let dataExpFormatada = "Sem expiração";
-    let expirou = false;
 
     if (n.data_expiracao) {
       const dataExp = new Date(n.data_expiracao + "T00:00:00");
       dataExpFormatada = dataExp.toLocaleDateString();
-      if (dataExp < hoje) expirou = true;
     }
 
-    const linhaHtml = `
+    // Como o arquivamento já rolou no init(), tudo o que sobra aqui é ativo
+    listaAtivas += `
       <tr>
         <td>${n.titulo}</td>
         <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
@@ -269,31 +291,12 @@ async function carregarGestaoAdmin() {
         </td>
       </tr>
     `;
-
-    if (expirou) {
-      listaExpiradas += linhaHtml;
-      contExpiradas++;
-    } else {
-      listaAtivas += linhaHtml;
-      contAtivas++;
-    }
   });
 
   corpoAtivas.innerHTML =
-    listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
+    listaAtivas || '<tr><td colspan="5">Nenhuma notícia para exibir.</td></tr>';
 
-  corpoExpiradas.innerHTML =
-    listaExpiradas || '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
-
-  const totalNotif = document.getElementById("total-notif");
-  const ativasNotif = document.getElementById("ativas-notif");
-  const expiradasNotif = document.getElementById("expiradas-notif");
-
-  if (totalNotif) totalNotif.innerText = noticias.length;
-  if (ativasNotif) ativasNotif.innerText = contAtivas;
-  if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
-
-  // listeners
+  // Reconecta os listeners dos botões de editar e deletar
   document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicao(this.getAttribute("data-id"));

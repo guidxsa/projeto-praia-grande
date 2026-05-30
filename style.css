@@ -150,22 +150,26 @@ textarea {
 }
 
 .logo-icon {
-  width: 44px;
-  height: 44px;
+  width: 140px;
+  height: 140px;
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: linear-gradient(180deg, var(--primary), var(--primary-2));
-  color: #fff;
+  background: #ffffff;
+  color: #ffffff;
   font-size: 1.2rem;
-  box-shadow: 0 10px 24px rgba(15, 76, 129, 0.18);
+  box-shadow: 0 10px 24px rgb(255, 255, 255);
   flex: 0 0 auto;
+}
+
+.logo-imag {
+  width: 300px;
+  height: 200px;
 }
 
 /* ── Botões globais ── */
 .btn-acesso,
 .btn-logout,
-.btn-nova,
 .btn-postar,
 .btn-cancelar,
 .btn-create-user,
@@ -189,15 +193,13 @@ textarea {
 
 .btn-acesso:hover,
 .btn-postar:hover,
-.btn-create-user:hover,
-.btn-nova:hover {
+.btn-create-user:hover{
   transform: translateY(-1px);
 }
 
 .btn-acesso:active,
 .btn-postar:active,
-.btn-create-user:active,
-.btn-nova:active {
+.btn-create-user:active{
   transform: translateY(0);
 }
 
@@ -411,9 +413,10 @@ textarea {
     linear-gradient(180deg, #f8fbff, #eef4fb);
 }
 
+/* ── Caixa principal de Login ── */
 .login-container {
-  width: min(100%, 420px);
-  padding: 34px 28px;
+  width: min(100%, 480px); /* Aumentamos de 420px para 480px */
+  padding: 48px 40px; /* Mais respiro interno (antes era 34px 28px) */
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(219, 227, 238, 0.9);
   border-radius: var(--radius-xl);
@@ -421,28 +424,34 @@ textarea {
   text-align: center;
 }
 
+/* ── Ícone e Textos proporcionais ── */
 .login-container .logo-icon {
-  margin: 0 auto 14px;
+  width: 64px; /* Ícone maior */
+  height: 64px;
+  font-size: 1.8rem;
+  margin: 0 auto 20px;
 }
 
 .login-container h2 {
-  margin: 0 0 8px;
-  font-size: 1.55rem;
+  margin: 0 0 10px;
+  font-size: 1.8rem; /* Título de maior destaque */
 }
 
 .login-container p {
-  margin: 0 0 20px;
+  margin: 0 0 28px;
   color: var(--muted);
+  font-size: 1.05rem;
 }
 
 .login-container input {
   width: 100%;
-  padding: 13px 14px;
+  padding: 16px; /* Campos de texto mais altos */
   margin: 10px 0;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: #fff;
   color: var(--text);
+  font-size: 1.05rem; /* Fonte maior para facilitar a leitura */
 }
 
 .login-container input:focus {
@@ -453,14 +462,16 @@ textarea {
 
 .login-container button {
   width: 100%;
-  margin-top: 10px;
-  padding: 13px 16px;
+  margin-top: 16px;
+  padding: 16px; /* Altura do botão combinando com os inputs */
   background: linear-gradient(180deg, var(--primary), var(--primary-2));
   color: #fff;
   border: 0;
   border-radius: 12px;
   font-weight: 700;
+  font-size: 1.1rem;
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
 }
 
 .voltar-link {
@@ -511,14 +522,6 @@ textarea {
   border: 0;
   border-top: 1px solid rgba(219, 227, 238, 0.8);
   margin: 18px 0;
-}
-
-.btn-nova {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--primary);
-  color: #fff;
-  box-shadow: var(--shadow-sm);
 }
 
 /* ── Tabelas Admin ── */
@@ -944,6 +947,22 @@ textarea {
   padding: 18px 16px 14px;
 }
 
+/* ── Estado Colapsado do Header Admin (Mobile) ── */
+.admin-header-shell.admin-collapsed .user-info,
+.admin-header-shell.admin-collapsed .admin-navbar {
+  display: none; /* Esconde o botão sair e os links de navegação */
+}
+
+.admin-header-shell.admin-collapsed {
+  padding-bottom: 16px; /* Reduz o espaço inferior quando fechado */
+}
+
+/* Faz a setinha virar para baixo quando fechado */
+.admin-header-shell.admin-collapsed #toggle-admin-chevron {
+  transform: rotate(180deg);
+  transform-origin: 12px 12px;
+}
+
 .admin-header-top {
   width: min(var(--container), calc(100% - 32px));
   margin: 0 auto;
@@ -981,15 +1000,18 @@ textarea {
 }
 
 .btn-logout {
-  padding: 10px 14px;
+  padding: 10px 16px;
   background: var(--surface-2);
-  color: var(--text);
-  border: 1px solid var(--border);
+  color: var(--danger); /* Deixamos vermelho para indicar ação de saída */
+  border: 1px solid rgba(185, 28, 28, 0.2); /* Borda vermelha suave */
+  border-radius: 12px; /* Arredondamento padrão */
+  font-weight: 700;
   box-shadow: var(--shadow-sm);
 }
 
 .btn-logout:hover {
-  background: #e9eef8;
+  background: #ffecec; /* Fundo avermelhado ao passar o mouse */
+  border-color: rgba(185, 28, 28, 0.4);
 }
 
 .admin-navbar {
@@ -1440,7 +1462,7 @@ textarea {
   }
 
   .login-container {
-    padding: 26px 20px;
+    padding: 32px 24px;
     border-radius: 20px;
   }
 
@@ -1572,6 +1594,69 @@ textarea {
 
   .noticia-full-text {
     font-size: 0.98rem;
+  }
+
+  
+  /* ── Ajustes da Barra de Estatísticas para Mobile ── */
+  .stats-bar-horizontal {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 16px;
+    position: relative; /* Necessário para prender o botão na base */
+    margin-bottom: 24px; /* Empurra a tabela um pouco para baixo para o botão não sobrepor */
+    transition:
+      padding var(--transition),
+      gap var(--transition);
+  }
+
+  /* (Mantenha aqui as regras que já tínhamos feito para .stats-info-group e os botões) */
+  .stats-info-group {
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .stats-bar-horizontal > div:nth-child(2) {
+    flex-direction: column;
+    width: 100%;
+  }
+
+
+ .stats-bar-horizontal > div:last-child {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px; /* Cria o espaço entre os botões perfeitamente */
+  }
+
+  .stats-bar-horizontal .btn-nova,
+  .stats-bar-horizontal .btn-minhas-noticias {
+    width: 100%;
+    min-width: 100%;
+    margin: 0;
+  }
+
+  /* ── NOVO: Modo Colapsado ── */
+  .stats-bar-horizontal.stats-collapsed {
+    padding: 12px 16px;
+    gap: 0;
+  }
+
+  /* Esconde completamente a div que guarda os botões grandes */
+  .stats-bar-horizontal.stats-collapsed > div:nth-child(2) {
+    display: none;
+  }
+
+  /* Animação do botão (Seta virando para cima/baixo) */
+  .stats-bar-horizontal.stats-collapsed #toggle-stats-chevron {
+    transform: rotate(180deg);
+    transform-origin: 12px 12px;
+  }
+
+  /* Ajuste no alinhamento da paginação e pesquisa */
+  .pagination-container {
+    justify-content: space-between;
   }
 }
 
@@ -1729,19 +1814,6 @@ textarea {
   color: var(--text);
 }
 
-/* Garante que o botão não estique demais */
-.stats-bar-horizontal .btn-nova {
-  width: auto;
-  min-width: 180px;
-  margin: 0;
-}
-
-
-
-
-
-
-
 .footer-escola {
   background: linear-gradient(180deg, #f9f8f5 0%, #ece8e1 100%);
   border-top: 1px solid rgba(40, 37, 29, 0.12);
@@ -1849,21 +1921,17 @@ textarea {
   }
 }
 
-
-
 /* === FOTO DA ESCOLA NO HEADER === */
 .logo-escola-foto {
   width: 56px;
   height: 56px;
-  border-radius: 50%;          /* círculo — combine com o estilo do header */
-  object-fit: cover;           /* corta sem distorcer */
+  border-radius: 50%; /* círculo — combine com o estilo do header */
+  object-fit: cover; /* corta sem distorcer */
   object-position: center top; /* foca na parte superior (fachada) */
   border: 2px solid rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
   display: block;
 }
-
-
 
 /* ── HEADER COLAPSÁVEL (mobile-only) ── */
 .btn-toggle-header {
@@ -1888,7 +1956,9 @@ textarea {
     box-shadow: var(--shadow-sm);
     color: var(--muted);
     z-index: 21;
-    transition: color var(--transition), transform var(--transition) 0s;
+    transition:
+      color var(--transition),
+      transform var(--transition) 0s;
   }
 
   .btn-toggle-header:hover {
@@ -1899,7 +1969,7 @@ textarea {
   .main-header {
     position: sticky;
     top: 0;
-    flex-direction: row;      /* volta para row no mobile */
+    flex-direction: row; /* volta para row no mobile */
     align-items: center;
     flex-wrap: wrap;
     padding-bottom: 14px;
@@ -1930,32 +2000,56 @@ textarea {
   }
 }
 
-
-
-/* ─── BOTÃO MINHAS NOTÍCIAS ─────────────────────────────────────────────────── */
-.btn-minhas-noticias {
+/* ─── BOTÕES DA BARRA DE ESTATÍSTICAS (Base Unificada) ─── */
+.btn-minhas-noticias,
+.btn-nova {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #ffffff;
-  border: 1.5px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px; /* Mesma altura e largura interna para os dois */
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
   white-space: nowrap;
+  min-height: 48px; /* Força os dois a terem sempre a mesma altura exata */
+}
+
+/* Estilo específico do Minhas Notícias */
+.btn-minhas-noticias {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 .btn-minhas-noticias:hover {
-  border-color: #1a6b8a;
-  background: #f0f9ff;
-  color: #1a6b8a;
+  border-color: rgba(37, 99, 235, 0.3);
+  background: #eaf2ff;
+  color: var(--primary);
 }
 .btn-minhas-noticias.ativo {
-  background: #1a6b8a;
-  border-color: #1a6b8a;
-  color: #ffffff;
+  background: var(--surface-2);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 700;
 }
-/* ─── FIM BOTÃO MINHAS NOTÍCIAS ──────────────────────────────────────────────── */
+
+/* Estilo específico do Nova Notificação */
+.btn-nova {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid transparent; /* 1px invisível para empatar com a borda do outro */
+}
+.btn-nova:hover {
+  transform: translateY(-1px);
+}
+
+/* Comportamento no Desktop (Lado a Lado) */
+.stats-bar-horizontal .btn-nova,
+.stats-bar-horizontal .btn-minhas-noticias {
+  width: auto;
+  min-width: 180px;
+  margin: 0;
+}
+/* ─── FIM BOTOES BARRA ESTATISTICAS ─── */
