@@ -364,7 +364,7 @@ async function carregarGestaoAdmin() {
 
   corpoAtivas.innerHTML =
     listaAtivas || '<tr><td colspan="5">Nenhuma notícia para exibir.</td></tr>';
-    
+
   // Evento para o botão de Visualizar (Preview)
   document.querySelectorAll(".btn-ver-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -572,7 +572,8 @@ async function deletarNoticia(id) {
 
 // ─── LOGIN E LOGOUT ───────────────────────────────────────────────────────────
 async function fazerLogin() {
-  const { error } = await _supabase.auth.signInWithPassword({
+  // 1. Faz a tentativa de login normal no servidor
+  const { data: authData, error } = await _supabase.auth.signInWithPassword({
     email: document.getElementById("email").value,
     password: document.getElementById("senha").value,
   });
@@ -580,7 +581,26 @@ async function fazerLogin() {
   if (error) {
     mostrarToast("Acesso Negado", "Email ou senha incorretos.", "error");
   } else {
-    window.location.href = "admin.html";
+    // 2. Antes de liberar o acesso, vai na tabela checar o status!
+    const { data: perfil } = await _supabase
+      .from("perfis_usuarios")
+      .select("status")
+      .eq("id", authData.user.id)
+      .single();
+
+    // 3. Se for arquivado, derruba a sessão na hora
+    if (perfil && perfil.status === "Arquivado") {
+      await _supabase.auth.signOut(); // Expulsa o usuário
+      mostrarToast(
+        "Acesso Bloqueado",
+        "Sua conta foi desativada pela Direção.",
+        "error",
+      );
+      return; // Para o código aqui e não deixa ir para a tela de admin
+    }
+
+    // 4. Se estiver tudo OK, entra no painel
+    window.location.href = "admin.html"; // (ou "admin" se já tiver feito a mudança das URLs limpas)
   }
 }
 
@@ -1001,31 +1021,50 @@ async function carregarUsuarios() {
 
   if (usuarios) {
     corpo.innerHTML = usuarios
-      .map(
-        (u) => `
-          <tr style="${u.status === "Arquivado" ? "opacity: 0.5; background: #f9f9f9;" : ""}">
+      .map((u) => {
+        const isArquivado = u.status === "Arquivado";
+
+        // Define o botão dependendo do status atual do usuário
+        const botaoAcao = isArquivado
+          ? `<button class="btn-edit btn-restaurar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">♻️ Restaurar</button>`
+          : `<button class="btn-delete btn-arquivar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">🗄️ Arquivar</button>`;
+
+        return `
+          <tr style="${isArquivado ? "opacity: 0.5; background: #f9f9f9;" : ""}">
             <td><strong>${u.nome_completo}</strong></td>
             <td>${u.email}</td>
             <td><span class="tag">${u.cargo}</span></td>
             <td><small>${u.status}</small></td>
             <td>
-    <button class="btn-edit btn-editar-usuario" data-id="${u.id}">✏️ Editar</button>
-    <button class="btn-delete btn-arquivar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">🗄️ Arquivar</button>
-  </td>
+              <button class="btn-edit btn-editar-usuario" data-id="${u.id}">✏️ Editar</button>
+              ${botaoAcao}
+            </td>
           </tr>
-        `,
-      )
+        `;
+      })
       .join("");
   }
 
+  // Reconecta os eventos de clique
   document.querySelectorAll(".btn-editar-usuario").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicaoUsuario(this.getAttribute("data-id"));
     });
   });
+
   document.querySelectorAll(".btn-arquivar-usuario").forEach((btn) => {
     btn.addEventListener("click", function () {
       arquivarUsuario(
+        this.getAttribute("data-id"),
+        this.getAttribute("data-nome"),
+      );
+    });
+  });
+
+  // NOVO: Conecta o evento do botão de restaurar
+  document.querySelectorAll(".btn-restaurar-usuario").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      restaurarUsuario(
         this.getAttribute("data-id"),
         this.getAttribute("data-nome"),
       );
@@ -1040,15 +1079,66 @@ async function arquivarUsuario(id, nome) {
     "⚠️",
   );
   if (confirmado) {
-    const { error } = await _supabase
+    // Adicionamos o .select() no final para exigir uma resposta real do banco
+    const { data, error } = await _supabase
       .from("perfis_usuarios")
       .update({ status: "Arquivado" })
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
-    if (!error) {
+    // Se RLS bloquear, o error é nulo mas o data vem vazio (length === 0)
+    if (error || !data || data.length === 0) {
+      mostrarToast(
+        "Acesso Negado",
+        "O banco de dados bloqueou a alteração. Verifique as regras RLS.",
+        "error",
+      );
+    } else {
       await registrarLog("Arquivou Usuário", nome, id);
-      mostrarToast("Acesso Desativado", "O usuário foi arquivado.", "success");
+      mostrarToast(
+        "Acesso Desativado",
+        "O usuário foi arquivado com sucesso.",
+        "success",
+      );
+      carregarUsuarios();
+      carregarLogs(1);
+    }
+  }
+}
 
+async function restaurarUsuario(id, nome) {
+  const confirmado = await confirmarAcao(
+    "Restaurar Acesso",
+    `Deseja reativar o acesso de ${nome} ao painel?`,
+    "♻️",
+  );
+
+  if (confirmado) {
+    const { data, error } = await _supabase
+      .from("perfis_usuarios")
+      .update({ status: "Ativo" })
+      .eq("id", id)
+      .select();
+
+    if (error || !data || data.length === 0) {
+      mostrarToast(
+        "Acesso Negado",
+        "O banco de dados bloqueou a alteração. Verifique as regras RLS.",
+        "error",
+      );
+    } else {
+      // Registramos como "Editou Usuário" para o filtro de log continuar funcionando
+      await registrarLog(
+        "Editou Usuário",
+        nome,
+        id,
+        "Reativou o acesso do funcionário",
+      );
+      mostrarToast(
+        "Acesso Restaurado",
+        `O usuário ${nome} foi reativado com sucesso.`,
+        "success",
+      );
       carregarUsuarios();
       carregarLogs(1);
     }
@@ -1086,16 +1176,21 @@ async function salvarEdicaoUsuario() {
   const novoNome = document.getElementById("edit-user-nome").value;
   const novoCargo = document.getElementById("edit-user-cargo").value;
 
-  const { error } = await _supabase
+  const { data, error } = await _supabase
     .from("perfis_usuarios")
     .update({
       nome_completo: novoNome,
       cargo: novoCargo,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select(); // Exige recibo do banco
 
-  if (error) {
-    mostrarToast("Falha na Atualização", error.message, "error");
+  if (error || !data || data.length === 0) {
+    mostrarToast(
+      "Acesso Negado",
+      "O banco bloqueou a edição. Verifique as permissões RLS.",
+      "error",
+    );
   } else {
     await registrarLog(
       "Editou Usuário",
