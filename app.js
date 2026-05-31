@@ -37,6 +37,74 @@ let filtrosLogs = {
 const IMAGEM_DEFAULT =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='450' viewBox='0 0 800 450'%3E%3Crect width='800' height='450' fill='%23e8f0fe'/%3E%3Crect x='60' y='80' width='280' height='200' rx='8' fill='%23c5d5f5'/%3E%3Crect x='380' y='80' width='360' height='28' rx='6' fill='%23b0c4ee'/%3E%3Crect x='380' y='124' width='300' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='380' y='152' width='320' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='380' y='180' width='280' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='310' width='680' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='338' width='620' height='16' rx='4' fill='%23c5d5f5'/%3E%3Crect x='60' y='366' width='500' height='16' rx='4' fill='%23c5d5f5'/%3E%3Ccircle cx='200' cy='180' r='40' fill='%23a0b8e8'/%3E%3Ctext x='400' y='240' font-family='Arial' font-size='18' fill='%236b8ccc' text-anchor='middle'%3ENot%C3%ADcia%3C%2Ftext%3E%3C%2Fsvg%3E";
 
+// ─── SISTEMA CUSTOMIZADO DE ALERTAS E CONFIRMAÇÕES ───
+function mostrarToast(titulo, mensagem, tipo = "info") {
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${tipo}`;
+
+  let icone = "ℹ️";
+  if (tipo === "success") icone = "✅";
+  if (tipo === "error") icone = "❌";
+  if (tipo === "warning") icone = "⚠️";
+
+  toast.innerHTML = `
+    <div class="toast-icon">${icone}</div>
+    <div class="toast-content">
+      <h4 class="toast-title">${titulo}</h4>
+      <p class="toast-msg">${mensagem}</p>
+    </div>
+    <button class="toast-close">&times;</button>
+  `;
+
+  container.appendChild(toast);
+
+  // Remove o toast ao clicar no X ou após 5 segundos
+  const fechar = () => {
+    toast.classList.add("fade-out");
+    toast.addEventListener("animationend", () => toast.remove());
+  };
+  toast.querySelector(".toast-close").addEventListener("click", fechar);
+  setTimeout(fechar, 5000);
+}
+
+// Substitui o confirm() nativo por uma Promise assíncrona
+function confirmarAcao(titulo, mensagem, icone = "⚠️") {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML = `
+      <div class="confirm-modal">
+        <div class="confirm-icon">${icone}</div>
+        <h3 class="confirm-title">${titulo}</h3>
+        <p class="confirm-msg">${mensagem}</p>
+        <div class="confirm-actions">
+          <button class="btn-confirm-no">Cancelar</button>
+          <button class="btn-confirm-yes">Confirmar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const fechar = (resultado) => {
+      overlay.remove();
+      resolve(resultado);
+    };
+
+    overlay
+      .querySelector(".btn-confirm-yes")
+      .addEventListener("click", () => fechar(true));
+    overlay
+      .querySelector(".btn-confirm-no")
+      .addEventListener("click", () => fechar(false));
+  });
+}
 // ─── INICIALIZAÇÃO ────────────────────────────────────────────────────────────
 async function init() {
   // 1. Checa se o usuário está logado
@@ -77,6 +145,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnEntrar = document.getElementById("btn-entrar");
   if (btnEntrar) {
     btnEntrar.addEventListener("click", fazerLogin);
+  }
+
+  /* ── Toggle Stats Mobile (Painel Admin) ── */
+  const btnStats = document.getElementById("btn-toggle-stats");
+  const adminStatsBar = document.getElementById("admin-stats-bar");
+
+  if (adminStatsBar && btnStats) {
+    btnStats.addEventListener("click", () => {
+      const collapsed = adminStatsBar.classList.toggle("stats-collapsed");
+      btnStats.setAttribute("aria-expanded", String(!collapsed));
+      btnStats.setAttribute(
+        "aria-label",
+        collapsed ? "Expandir barra" : "Minimizar barra",
+      );
+    });
+  }
+
+  /* ── Toggle Menu Superior Admin Mobile ── */
+  const btnToggleAdmin = document.getElementById("btn-toggle-admin");
+  const adminHeaderTopo = document.getElementById("admin-header-topo");
+
+  if (btnToggleAdmin && adminHeaderTopo) {
+    btnToggleAdmin.addEventListener("click", () => {
+      const collapsed = adminHeaderTopo.classList.toggle("admin-collapsed");
+      btnToggleAdmin.setAttribute("aria-expanded", String(!collapsed));
+      btnToggleAdmin.setAttribute(
+        "aria-label",
+        collapsed ? "Expandir menu" : "Minimizar menu",
+      );
+    });
   }
 
   // Listener do input de busca
@@ -216,9 +314,8 @@ function buscar() {
 
 async function carregarGestaoAdmin() {
   const corpoAtivas = document.getElementById("tabela-ativas");
-  const corpoExpiradas = document.getElementById("tabela-expiradas");
 
-  if (!corpoAtivas || !corpoExpiradas) return;
+  if (!corpoAtivas) return;
 
   const { data: noticias, error } = await _supabase
     .from("notificacoes")
@@ -232,16 +329,10 @@ async function carregarGestaoAdmin() {
 
   if (!noticias) return;
 
-  // ✅ NOVO: salva cache
+  // Mantém o cache para o filtro de "Minhas Notícias"
   _todasNoticiasAdmin = noticias;
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
   let listaAtivas = "";
-  let listaExpiradas = "";
-  let contAtivas = 0;
-  let contExpiradas = 0;
 
   noticias.forEach((n) => {
     const dataPost = n.criado_em
@@ -249,51 +340,39 @@ async function carregarGestaoAdmin() {
       : "---";
 
     let dataExpFormatada = "Sem expiração";
-    let expirou = false;
 
     if (n.data_expiracao) {
       const dataExp = new Date(n.data_expiracao + "T00:00:00");
       dataExpFormatada = dataExp.toLocaleDateString();
-      if (dataExp < hoje) expirou = true;
     }
 
-    const linhaHtml = `
+    // Como o arquivamento já rolou no init(), tudo o que sobra aqui é ativo
+    listaAtivas += `
       <tr>
         <td>${n.titulo}</td>
         <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
         <td>${dataPost}</td>
         <td>${dataExpFormatada}</td>
         <td>
+          <button class="btn-edit btn-ver-noticia" data-id="${n.id}" title="Visualizar">👁️</button>
           <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
           <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
         </td>
       </tr>
     `;
-
-    if (expirou) {
-      listaExpiradas += linhaHtml;
-      contExpiradas++;
-    } else {
-      listaAtivas += linhaHtml;
-      contAtivas++;
-    }
   });
 
   corpoAtivas.innerHTML =
-    listaAtivas || '<tr><td colspan="5">Nenhuma notícia ativa.</td></tr>';
+    listaAtivas || '<tr><td colspan="5">Nenhuma notícia para exibir.</td></tr>';
 
-  corpoExpiradas.innerHTML =
-    listaExpiradas || '<tr><td colspan="5">Nenhuma notícia expirada.</td></tr>';
+  // Evento para o botão de Visualizar (Preview)
+  document.querySelectorAll(".btn-ver-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      abrirNoticiaCompleta(this.getAttribute("data-id"));
+    });
+  });
 
-  const totalNotif = document.getElementById("total-notif");
-  const ativasNotif = document.getElementById("ativas-notif");
-  const expiradasNotif = document.getElementById("expiradas-notif");
-
-  if (totalNotif) totalNotif.innerText = noticias.length;
-  if (ativasNotif) ativasNotif.innerText = contAtivas;
-  if (expiradasNotif) expiradasNotif.innerText = contExpiradas;
-
-  // listeners
+  // Reconecta os listeners dos botões de editar e deletar
   document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicao(this.getAttribute("data-id"));
@@ -449,7 +528,12 @@ async function deletarNoticia(id) {
 
   if (!noticia) return;
 
-  if (confirm(`Arquivar "${noticia.titulo}"?`)) {
+  const confirmado = await confirmarAcao(
+    "Arquivar Notícia",
+    `Tem certeza que deseja arquivar "${noticia.titulo}"?`,
+    "🗄️",
+  );
+  if (confirmado) {
     const {
       data: { user },
     } = await _supabase.auth.getUser();
@@ -464,7 +548,8 @@ async function deletarNoticia(id) {
         },
       ]);
 
-    if (errArq) return alert("Erro no arquivo");
+    if (errArq)
+      return mostrarToast("Erro", "Ocorreu um erro no arquivo.", "error");
 
     await registrarLog(
       "Arquivou",
@@ -479,7 +564,7 @@ async function deletarNoticia(id) {
       .eq("id", id);
 
     if (!errDel) {
-      alert("Arquivado com sucesso!");
+      mostrarToast("Sucesso", "Notícia arquivada com sucesso!", "success");
       await carregarGestaoAdmin();
     }
   }
@@ -487,15 +572,35 @@ async function deletarNoticia(id) {
 
 // ─── LOGIN E LOGOUT ───────────────────────────────────────────────────────────
 async function fazerLogin() {
-  const { error } = await _supabase.auth.signInWithPassword({
+  // 1. Faz a tentativa de login normal no servidor
+  const { data: authData, error } = await _supabase.auth.signInWithPassword({
     email: document.getElementById("email").value,
     password: document.getElementById("senha").value,
   });
 
   if (error) {
-    alert(error.message);
+    mostrarToast("Acesso Negado", "Email ou senha incorretos.", "error");
   } else {
-    window.location.href = "admin.html";
+    // 2. Antes de liberar o acesso, vai na tabela checar o status!
+    const { data: perfil } = await _supabase
+      .from("perfis_usuarios")
+      .select("status")
+      .eq("id", authData.user.id)
+      .single();
+
+    // 3. Se for arquivado, derruba a sessão na hora
+    if (perfil && perfil.status === "Arquivado") {
+      await _supabase.auth.signOut(); // Expulsa o usuário
+      mostrarToast(
+        "Acesso Bloqueado",
+        "Sua conta foi desativada pela Direção.",
+        "error",
+      );
+      return; // Para o código aqui e não deixa ir para a tela de admin
+    }
+
+    // 4. Se estiver tudo OK, entra no painel
+    window.location.href = "admin.html"; // (ou "admin" se já tiver feito a mudança das URLs limpas)
   }
 }
 
@@ -539,9 +644,13 @@ async function publicar() {
           idEmEdicao,
           "Alteração de dados",
         );
-        alert("Edição salva com sucesso!"); // Sucesso na edição
+        mostrarToast("Sucesso", "Edição salva com sucesso!", "success"); // Sucesso na edição
       } else {
-        alert("Erro: Você não tem permissão para editar esta notícia!");
+        mostrarToast(
+          "Acesso Negado",
+          "Você não tem permissão para editar esta notícia.",
+          "error",
+        );
         return; // IMPORTANTE: Para a execução aqui e não mostra o alerta final
       }
     } else {
@@ -560,7 +669,7 @@ async function publicar() {
           data[0].id,
           "Nova postagem",
         );
-        alert("Publicado com sucesso!"); // Sucesso na criação
+        mostrarToast("Sucesso", "Nova notícia publicada!", "success"); // Sucesso na criação
       }
     }
 
@@ -568,7 +677,7 @@ async function publicar() {
     fecharModal();
     await carregarGestaoAdmin();
   } catch (err) {
-    alert("Erro na operação: " + err.message);
+    mostrarToast("Erro na Operação", err.message, "error");
   }
 }
 
@@ -912,28 +1021,37 @@ async function carregarUsuarios() {
 
   if (usuarios) {
     corpo.innerHTML = usuarios
-      .map(
-        (u) => `
-          <tr style="${u.status === "Arquivado" ? "opacity: 0.5; background: #f9f9f9;" : ""}">
+      .map((u) => {
+        const isArquivado = u.status === "Arquivado";
+
+        // Define o botão dependendo do status atual do usuário
+        const botaoAcao = isArquivado
+          ? `<button class="btn-edit btn-restaurar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">♻️ Restaurar</button>`
+          : `<button class="btn-delete btn-arquivar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">🗄️ Arquivar</button>`;
+
+        return `
+          <tr style="${isArquivado ? "opacity: 0.5; background: #f9f9f9;" : ""}">
             <td><strong>${u.nome_completo}</strong></td>
             <td>${u.email}</td>
             <td><span class="tag">${u.cargo}</span></td>
             <td><small>${u.status}</small></td>
             <td>
-    <button class="btn-edit btn-editar-usuario" data-id="${u.id}">✏️ Editar</button>
-    <button class="btn-delete btn-arquivar-usuario" data-id="${u.id}" data-nome="${u.nome_completo}">🗄️ Arquivar</button>
-  </td>
+              <button class="btn-edit btn-editar-usuario" data-id="${u.id}">✏️ Editar</button>
+              ${botaoAcao}
+            </td>
           </tr>
-        `,
-      )
+        `;
+      })
       .join("");
   }
 
+  // Reconecta os eventos de clique
   document.querySelectorAll(".btn-editar-usuario").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicaoUsuario(this.getAttribute("data-id"));
     });
   });
+
   document.querySelectorAll(".btn-arquivar-usuario").forEach((btn) => {
     btn.addEventListener("click", function () {
       arquivarUsuario(
@@ -942,19 +1060,85 @@ async function carregarUsuarios() {
       );
     });
   });
+
+  // NOVO: Conecta o evento do botão de restaurar
+  document.querySelectorAll(".btn-restaurar-usuario").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      restaurarUsuario(
+        this.getAttribute("data-id"),
+        this.getAttribute("data-nome"),
+      );
+    });
+  });
 }
 
 async function arquivarUsuario(id, nome) {
-  if (confirm(`Deseja desativar o acesso de ${nome}?`)) {
-    const { error } = await _supabase
+  const confirmado = await confirmarAcao(
+    "Desativar Acesso",
+    `Deseja desativar permanentemente o acesso de ${nome}?`,
+    "⚠️",
+  );
+  if (confirmado) {
+    // Adicionamos o .select() no final para exigir uma resposta real do banco
+    const { data, error } = await _supabase
       .from("perfis_usuarios")
       .update({ status: "Arquivado" })
-      .eq("id", id);
+      .eq("id", id)
+      .select();
 
-    if (!error) {
+    // Se RLS bloquear, o error é nulo mas o data vem vazio (length === 0)
+    if (error || !data || data.length === 0) {
+      mostrarToast(
+        "Acesso Negado",
+        "O banco de dados bloqueou a alteração. Verifique as regras RLS.",
+        "error",
+      );
+    } else {
       await registrarLog("Arquivou Usuário", nome, id);
-      alert("Usuário arquivado!");
+      mostrarToast(
+        "Acesso Desativado",
+        "O usuário foi arquivado com sucesso.",
+        "success",
+      );
+      carregarUsuarios();
+      carregarLogs(1);
+    }
+  }
+}
 
+async function restaurarUsuario(id, nome) {
+  const confirmado = await confirmarAcao(
+    "Restaurar Acesso",
+    `Deseja reativar o acesso de ${nome} ao painel?`,
+    "♻️",
+  );
+
+  if (confirmado) {
+    const { data, error } = await _supabase
+      .from("perfis_usuarios")
+      .update({ status: "Ativo" })
+      .eq("id", id)
+      .select();
+
+    if (error || !data || data.length === 0) {
+      mostrarToast(
+        "Acesso Negado",
+        "O banco de dados bloqueou a alteração. Verifique as regras RLS.",
+        "error",
+      );
+    } else {
+      // Registramos como "Editou Usuário" para o filtro de log continuar funcionando
+      await registrarLog(
+        "Editou Usuário",
+        nome,
+        id,
+        "Reativou o acesso do funcionário",
+      );
+      mostrarToast(
+        "Acesso Restaurado",
+        `O usuário ${nome} foi reativado com sucesso.`,
+        "success",
+      );
       carregarUsuarios();
       carregarLogs(1);
     }
@@ -992,16 +1176,21 @@ async function salvarEdicaoUsuario() {
   const novoNome = document.getElementById("edit-user-nome").value;
   const novoCargo = document.getElementById("edit-user-cargo").value;
 
-  const { error } = await _supabase
+  const { data, error } = await _supabase
     .from("perfis_usuarios")
     .update({
       nome_completo: novoNome,
       cargo: novoCargo,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select(); // Exige recibo do banco
 
-  if (error) {
-    alert("Erro ao atualizar: " + error.message);
+  if (error || !data || data.length === 0) {
+    mostrarToast(
+      "Acesso Negado",
+      "O banco bloqueou a edição. Verifique as permissões RLS.",
+      "error",
+    );
   } else {
     await registrarLog(
       "Editou Usuário",
@@ -1010,7 +1199,7 @@ async function salvarEdicaoUsuario() {
       `Alterou cargo para ${novoCargo}`,
     );
 
-    alert("Dados do funcionário atualizados!");
+    mostrarToast("Sucesso", "Dados do funcionário atualizados!", "success");
     fecharModalUsuario();
     carregarUsuarios();
     carregarLogs(1);
@@ -1071,7 +1260,11 @@ function handleImageUpload(event) {
   const disponiveis = MAX_IMAGENS - imagensEmEdicao.length;
 
   if (disponiveis <= 0) {
-    alert("Limite de 5 imagens atingido.");
+    mostrarToast(
+      "Limite Atingido",
+      "Você só pode fazer upload de 5 imagens.",
+      "warning",
+    );
     event.target.value = "";
     return;
   }
@@ -1079,8 +1272,10 @@ function handleImageUpload(event) {
   const filesToProcess = files.slice(0, disponiveis);
 
   if (files.length > disponiveis) {
-    alert(
-      `Você selecionou ${files.length} imagens, mas só há espaço para ${disponiveis}. Apenas as primeiras ${disponiveis} serão adicionadas.`,
+    mostrarToast(
+      "Atenção",
+      `Apenas as primeiras ${disponiveis} imagens foram adicionadas.`,
+      "warning",
     );
   }
 
@@ -1508,6 +1703,7 @@ async function aplicarFiltroMinhasNoticias() {
         <td>${dataPost}</td>
         <td>${dataExpFormatada}</td>
         <td>
+          <button class="btn-edit btn-ver-noticia" data-id="${n.id}" title="Visualizar">👁️</button>
           <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
           <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
         </td>
@@ -1536,6 +1732,13 @@ async function aplicarFiltroMinhasNoticias() {
     listaExpiradas || `<tr><td colspan="5">${msgVaziaExp}</td></tr>`;
 
   // reatribui eventos
+
+  document.querySelectorAll(".btn-ver-noticia").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      abrirNoticiaCompleta(this.getAttribute("data-id"));
+    });
+  });
+
   document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
       prepararEdicao(this.getAttribute("data-id"));

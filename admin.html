@@ -14,7 +14,7 @@
 </head>
 
 <body>
-  <header class="main-header admin-header-shell">
+  <header class="main-header admin-header-shell" id="admin-header-topo">
     <div class="admin-header-top">
       <div class="page-identity">
         <p class="page-kicker">Painel Administrativo</p>
@@ -28,25 +28,20 @@
     </div>
 
     <nav class="admin-navbar">
-      <a href="admin.html" class="admin-nav-link" id="nav-estatisticas">Estatísticas / Notificações</a>
+      <a href="admin.html" class="admin-nav-link" id="nav-estatisticas">Notificações</a>
       <a href="equipe.html" class="admin-nav-link" id="nav-equipe">Gestão de Equipe</a>
       <a href="auditoria.html" class="admin-nav-link" id="nav-auditoria">Histórico de Auditoria</a>
     </nav>
+    
+    <button id="btn-toggle-admin" class="btn-toggle-header" aria-label="Minimizar menu" aria-expanded="true" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline id="toggle-admin-chevron" points="18 15 12 9 6 15" />
+      </svg>
+    </button>
   </header>
-
   <main class="container admin-page-stack">
     <section class="stats-bar-horizontal">
       <div class="stats-info-group">
-        <div class="stat-item-inline">
-          Total: <strong id="total-notif">0</strong>
-        </div>
-        <div class="stat-item-inline">
-          Ativas: <strong id="ativas-notif" class="text-green">0</strong>
-        </div>
-        <div class="stat-item-inline">
-          Expiradas: <strong id="expiradas-notif" class="text-red">0</strong>
-        </div>
-      </div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <button id="btn-minhas-noticias" class="btn-minhas-noticias" title="Exibir apenas minhas notícias">
           👤 Minhas Notícias
@@ -57,7 +52,7 @@
 
     <section class="tables-area">
       <div class="table-container">
-        <h3>✅ Notificações Ativas</h3>
+        <h3>Notificações Ativas</h3>
         <table class="admin-table">
           <thead>
             <tr>
@@ -69,22 +64,6 @@
             </tr>
           </thead>
           <tbody id="tabela-ativas"></tbody>
-        </table>
-      </div>
-
-      <div class="table-container admin-section-gap">
-        <h3>⚠️ Notificações Expiradas</h3>
-        <table class="admin-table table-expired">
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Categoria</th>
-              <th>Postado em</th>
-              <th>Expirou em</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-expiradas"></tbody>
         </table>
       </div>
     </section>
@@ -152,6 +131,16 @@
     </div>
   </div>
 
+  <div id="modal-leitura" class="modal-overlay" style="display: none" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-leitura">
+    <div class="modal-content-full">
+      <div class="read-progress-bar" id="read-progress-bar"></div>
+      <div class="modal-news-shell">
+        <button class="close-btn" type="button" id="btn-fechar-noticia" aria-label="Fechar notícia">×</button>
+        <div id="conteudo-noticia-foco"></div>
+      </div>
+    </div>
+  </div>
+  
   <script src="app.js"></script>
 </body>
 
