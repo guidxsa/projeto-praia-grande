@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestão de Equipe</title>
+    <style id="antiClickjack">body{display:none !important;}</style>
+<script>
+  if (self === top) {
+    var antiClickjack = document.getElementById("antiClickjack");
+    antiClickjack.parentNode.removeChild(antiClickjack);
+  } else {
+    top.location = self.location;
+  }
+</script>
     <link rel="stylesheet" href="style.css" />
     <script
       src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
@@ -27,7 +36,7 @@
 
       <nav class="admin-navbar">
         <a href="admin.html" class="admin-nav-link" id="nav-estatisticas"
-          >Estatísticas / Notificações</a
+          >Notificações</a
         >
         <a href="equipe.html" class="admin-nav-link" id="nav-equipe"
           >Gestão de Equipe</a

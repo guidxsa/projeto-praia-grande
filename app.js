@@ -538,35 +538,29 @@ async function deletarNoticia(id) {
       data: { user },
     } = await _supabase.auth.getUser();
 
-    const { error: errArq } = await _supabase
-      .from("notificacoes_arquivadas")
-      .upsert([
-        {
-          ...noticia,
-          arquivado_por_id: user.id,
-          arquivado_por_nome: user.user_metadata.nome_completo,
-        },
-      ]);
+    const { data, error } = await _supabase
+    .from('notificacoes') 
+    .delete()
+    .eq('id', id)
+    .select();
 
-    if (errArq)
-      return mostrarToast("Erro", "Ocorreu um erro no arquivo.", "error");
+  // 2. Verifica erro de comunicação com o Supabase
+  if (error) {
+    console.error("Erro no servidor:", error);
+    mostrarToast('Erro', 'Ocorreu um erro ao tentar conectar com o banco de dados.', 'error');
+    return;
+  }
 
-    await registrarLog(
-      "Arquivou",
-      noticia.titulo,
-      id,
-      "Movido para o histórico",
-    );
+  // 3. A VERIFICAÇÃO DO RLS (Aqui está o pulo do gato!)
+  // Se o data voltar vazio, o RLS bloqueou a ação silenciosamente
+  if (!data || data.length === 0) {
+    mostrarToast('Acesso Negado', 'Apenas a Direção ou o próprio autor podem apagar esta notícia.', 'error');
+    return;
+  }
 
-    const { error: errDel } = await _supabase
-      .from("notificacoes")
-      .delete()
-      .eq("id", id);
-
-    if (!errDel) {
-      mostrarToast("Sucesso", "Notícia arquivada com sucesso!", "success");
+  // 4. Sucesso real!
+  mostrarToast('Sucesso', 'Notícia apagada com sucesso!', 'success');
       await carregarGestaoAdmin();
-    }
   }
 }
 
@@ -1655,27 +1649,54 @@ async function arquivarNoticiasExpiradas() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── FILTRO MINHAS NOTÍCIAS ─────────────────────────────
+// Coloque esta variável solta, de preferência perto das outras variáveis globais no topo
+let _estadoFiltroMinhas = false;
+
 async function aplicarFiltroMinhasNoticias() {
+  const btnMinhas = document.getElementById("btn-minhas-noticias");
   const corpoAtivas = document.getElementById("tabela-ativas");
   const corpoExpiradas = document.getElementById("tabela-expiradas");
 
-  if (!corpoAtivas || !corpoExpiradas) return;
+  if (!btnMinhas || !corpoAtivas) return;
 
+  // 1. INVERTE O ESTADO A CADA CLIQUE (de false para true, e vice-versa)
+  _estadoFiltroMinhas = !_estadoFiltroMinhas;
+
+  // 2. FORÇA A COR DO BOTÃO A SEGUIR A VARIÁVEL
+  if (_estadoFiltroMinhas) {
+    btnMinhas.classList.add("ativo"); // Liga o azul
+  } else {
+    btnMinhas.classList.remove("ativo"); // Desliga o azul
+  }
+
+  // 3. Pega os dados do usuário
   const {
     data: { user },
+    error,
   } = await _supabase.auth.getUser();
+  if (error || !user) {
+    console.error("Erro ao verificar usuário:", error);
+    return;
+  }
 
-  if (!user) return;
+  let noticiasVisiveis = [];
 
-  const noticiasVisiveis = _filtroMinhasNoticias
-    ? _todasNoticiasAdmin.filter(
-        (n) =>
-          n.autor_id === user.id ||
-          (!n.autor_id &&
-            n.nome_autor === (user.user_metadata?.nome_completo || "")),
-      )
-    : _todasNoticiasAdmin;
+  // 4. APLICA O FILTRO CONFORME A VARIÁVEL
+  if (_estadoFiltroMinhas) {
+    // FILTRA: Mostra só as do autor
+    noticiasVisiveis = _todasNoticiasAdmin.filter((n) => {
+      return (
+        n.autor_id === user.id ||
+        (n.nome_autor &&
+          n.nome_autor === (user.user_metadata?.nome_completo || ""))
+      );
+    });
+  } else {
+    // NÃO FILTRA: Mostra todas
+    noticiasVisiveis = _todasNoticiasAdmin;
+  }
 
+  // 5. Constrói as tabelas normalmente
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
@@ -1686,7 +1707,6 @@ async function aplicarFiltroMinhasNoticias() {
     const dataPost = n.criado_em
       ? new Date(n.criado_em).toLocaleDateString()
       : "---";
-
     let dataExpFormatada = "Sem expiração";
     let expirou = false;
 
@@ -1696,16 +1716,18 @@ async function aplicarFiltroMinhasNoticias() {
       if (dataExp < hoje) expirou = true;
     }
 
+    const nomeCategoria = n.categoria || "Geral";
+
     const linhaHtml = `
       <tr>
         <td>${n.titulo}</td>
-        <td><span class="tag tag-${n.categoria.toLowerCase()}">${n.categoria}</span></td>
+        <td><span class="tag tag-${nomeCategoria.toLowerCase()}">${nomeCategoria}</span></td>
         <td>${dataPost}</td>
         <td>${dataExpFormatada}</td>
         <td>
           <button class="btn-edit btn-ver-noticia" data-id="${n.id}" title="Visualizar">👁️</button>
-          <button class="btn-edit btn-editar-noticia" data-id="${n.id}">✏️</button>
-          <button class="btn-delete btn-deletar-noticia" data-id="${n.id}">🗑️</button>
+          <button class="btn-edit btn-editar-noticia" data-id="${n.id}" title="Editar">✏️</button>
+          <button class="btn-delete btn-deletar-noticia" data-id="${n.id}" title="Arquivar">🗑️</button>
         </td>
       </tr>
     `;
@@ -1717,37 +1739,40 @@ async function aplicarFiltroMinhasNoticias() {
     }
   });
 
-  const msgVazia = _filtroMinhasNoticias
+  const msgVazia = _estadoFiltroMinhas
     ? "Você não criou nenhuma notícia."
-    : "Nenhuma notícia ativa.";
-
-  const msgVaziaExp = _filtroMinhasNoticias
+    : "Nenhuma notícia ativa encontrada.";
+  const msgVaziaExp = _estadoFiltroMinhas
     ? "Você não tem notícias expiradas."
     : "Nenhuma notícia expirada.";
 
   corpoAtivas.innerHTML =
     listaAtivas || `<tr><td colspan="5">${msgVazia}</td></tr>`;
 
-  corpoExpiradas.innerHTML =
-    listaExpiradas || `<tr><td colspan="5">${msgVaziaExp}</td></tr>`;
+  if (corpoExpiradas) {
+    corpoExpiradas.innerHTML =
+      listaExpiradas || `<tr><td colspan="5">${msgVaziaExp}</td></tr>`;
+  }
 
-  // reatribui eventos
-
+  // 6. Reconecta eventos
   document.querySelectorAll(".btn-ver-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
-      abrirNoticiaCompleta(this.getAttribute("data-id"));
+      if (typeof abrirNoticiaCompleta === "function")
+        abrirNoticiaCompleta(this.getAttribute("data-id"));
     });
   });
 
   document.querySelectorAll(".btn-editar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
-      prepararEdicao(this.getAttribute("data-id"));
+      if (typeof prepararEdicao === "function")
+        prepararEdicao(this.getAttribute("data-id"));
     });
   });
 
   document.querySelectorAll(".btn-deletar-noticia").forEach((btn) => {
     btn.addEventListener("click", function () {
-      deletarNoticia(this.getAttribute("data-id"));
+      if (typeof deletarNoticia === "function")
+        deletarNoticia(this.getAttribute("data-id"));
     });
   });
 }
