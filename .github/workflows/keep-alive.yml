@@ -7,11 +7,15 @@ on:
 
 jobs:
   ping:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping Supabase
+    - name: Ping Supabase (Leitura Real)
         run: |
-          curl -s -X GET "https://nnnniaoribyqkcxtbpvr.supabase.co/rest/v1/notificacoes?select=id&limit=1" \
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "https://nnnniaoribyqkcxtbpvr.supabase.co/rest/v1/notificacoes?select=*" \
           -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubm5pYW9yaWJ5cWtjeHRicHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcwNDMsImV4cCI6MjA4ODI4MzA0M30.oFOmO8kov8Gncy3kTwoMKPvPv2Og5Lzi4J7QyGWGKmo" \
-          -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubm5pYW9yaWJ5cWtjeHRicHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcwNDMsImV4cCI6MjA4ODI4MzA0M30.oFOmO8kov8Gncy3kTwoMKPvPv2Og5Lzi4J7QyGWGKmo" \
-          --fail || echo "Aviso: O ping falhou, mas a tentativa foi feita."
+          -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubm5pYW9yaWJ5cWtjeHRicHZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDcwNDMsImV4cCI6MjA4ODI4MzA0M30.oFOmO8kov8Gncy3kTwoMKPvPv2Og5Lzi4J7QyGWGKmo")
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Erro Crítico: Supabase recusou o ping com status HTTP $HTTP_STATUS"
+            exit 1
+          else
+            echo "Sucesso: O banco de dados respondeu perfeitamente com status 200"
+          fi
