@@ -538,35 +538,29 @@ async function deletarNoticia(id) {
       data: { user },
     } = await _supabase.auth.getUser();
 
-    const { error: errArq } = await _supabase
-      .from("notificacoes_arquivadas")
-      .upsert([
-        {
-          ...noticia,
-          arquivado_por_id: user.id,
-          arquivado_por_nome: user.user_metadata.nome_completo,
-        },
-      ]);
+    const { data, error } = await _supabase
+    .from('notificacoes') 
+    .delete()
+    .eq('id', id)
+    .select();
 
-    if (errArq)
-      return mostrarToast("Erro", "Ocorreu um erro no arquivo.", "error");
+  // 2. Verifica erro de comunicação com o Supabase
+  if (error) {
+    console.error("Erro no servidor:", error);
+    mostrarToast('Erro', 'Ocorreu um erro ao tentar conectar com o banco de dados.', 'error');
+    return;
+  }
 
-    await registrarLog(
-      "Arquivou",
-      noticia.titulo,
-      id,
-      "Movido para o histórico",
-    );
+  // 3. A VERIFICAÇÃO DO RLS (Aqui está o pulo do gato!)
+  // Se o data voltar vazio, o RLS bloqueou a ação silenciosamente
+  if (!data || data.length === 0) {
+    mostrarToast('Acesso Negado', 'Apenas a Direção ou o próprio autor podem apagar esta notícia.', 'error');
+    return;
+  }
 
-    const { error: errDel } = await _supabase
-      .from("notificacoes")
-      .delete()
-      .eq("id", id);
-
-    if (!errDel) {
-      mostrarToast("Sucesso", "Notícia arquivada com sucesso!", "success");
+  // 4. Sucesso real!
+  mostrarToast('Sucesso', 'Notícia apagada com sucesso!', 'success');
       await carregarGestaoAdmin();
-    }
   }
 }
 
